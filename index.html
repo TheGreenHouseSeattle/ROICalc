@@ -112,11 +112,13 @@
     @page{ margin:14mm; }
     body.print-analysis{ background:#fff; }
     body.print-analysis .wrap{ max-width:none; padding:0; }
-    body.print-analysis .hero, body.print-analysis .tabnav, body.print-analysis header,
+    body.print-analysis .tabnav, body.print-analysis header, body.print-analysis .wrap > .hero,
     body.print-analysis .rule, body.print-analysis #errBanner, body.print-analysis .noprint{ display:none !important; }
     body.print-analysis .tabpanel{ display:none !important; }
     body.print-analysis .tabpanel[data-tab="analysis"]{ display:block !important; }
     body.print-analysis .print-only{ display:block; }
+    /* the PDF shows all three scenario heroes (rendered into #heroPrintAll); strip the shadow */
+    body.print-analysis #heroPrintAll .hero{ break-inside:avoid; box-shadow:none; }
     body.print-analysis .card, body.print-analysis table, body.print-analysis .grid{ break-inside:avoid; }
     body.print-analysis h3.sec{ break-after:avoid; }
     body.print-analysis *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
@@ -211,6 +213,7 @@
 
   <!-- ============ TAB: ANALYSIS ============ -->
   <div class="tabpanel" data-tab="analysis">
+    <div id="heroPrintAll" class="print-only"></div>
     <div id="printHead" class="print-only" style="margin-bottom:14px;border-bottom:2px solid var(--navy);padding-bottom:10px">
       <div style="font-size:19px;font-weight:700;color:var(--navy)">EV Fast-Charging SPV — Analysis</div>
       <div id="printHeadSub" style="font-size:12px;color:var(--mut);margin-top:3px"></div>
@@ -656,9 +659,9 @@ function refreshFieldStates(){   // live update of chips + red outlines without 
 }
 
 /* -------------------- RENDER: DASHBOARD -------------------- */
-function renderHero(){
-  var R=compute(SC), cod=M.cod.v, N=R.N;
-  var lbl=document.getElementById("utilScLbl"); if(lbl) lbl.textContent=SCEN[SC];
+// headline content for ANY scenario — used by renderHero (screen, current SC) and the PDF export (all three)
+function heroContent(sc){
+  var R=compute(sc), cod=M.cod.v, N=R.N;
   var cls=function(v){return v>0?"pos":v<0?"neg":"neu";};
   // detect state from actual site data, NOT from IRR (IRR is null both for an empty model AND for a real
   // but no-invested-capital / deeply-loss-making site — those must not blank out the whole headline).
@@ -675,22 +678,36 @@ function renderHero(){
   } else if(noCapital){
     verdict='<b>Site entered — but no invested capital yet.</b> Stabilized NOI is '+fUSD(noi1)+'/yr. Enter <b>CAPEX per post</b> (Module 1–2) and any <b>land</b> basis on the Inputs tab so the model can compute IRR, NPV, payback and MOIC.';
   } else if(R.irrL==null){
-    verdict='<b>'+SCEN[SC]+' case:</b> this configuration does not earn a positive return over the '+N+'-year hold — levered NPV is '+fK(R.npvL)+' at a '+fPct(g("discount",SC),0)+' discount rate (IRR is undefined because the cash flows never turn positive). Check retail price, CAPEX and tariff.';
+    verdict='<b>'+SCEN[sc]+' case:</b> this configuration does not earn a positive return over the '+N+'-year hold — levered NPV is '+fK(R.npvL)+' at a '+fPct(g("discount",sc),0)+' discount rate (IRR is undefined because the cash flows never turn positive). Check retail price, CAPEX and tariff.';
   } else {
     var be=R.spb?('year '+R.spb+' ('+(cod+R.spb-1)+')'):('beyond the '+N+'-year hold');
-    verdict='<b>'+SCEN[SC]+' case:</b> a '+fPct(R.irrL)+' levered after-tax IRR over a '+N+'-year hold, breaking even in '+be+', on '+fK(R.equity)+' of equity against '+fK(R.cap.total)+' of all-in capital. Levered NPV of '+fK(R.npvL)+' at a '+fPct(g("discount",SC),0)+' discount rate.';
+    verdict='<b>'+SCEN[sc]+' case:</b> a '+fPct(R.irrL)+' levered after-tax IRR over a '+N+'-year hold, breaking even in '+be+', on '+fK(R.equity)+' of equity against '+fK(R.cap.total)+' of all-in capital. Levered NPV of '+fK(R.npvL)+' at a '+fPct(g("discount",sc),0)+' discount rate.';
   }
-  document.getElementById("heroVerdict").innerHTML=verdict;
   var stats=[
     {nm:"Levered IRR", big:(dashAll||R.irrL==null)?"—":fPct(R.irrL), sec:"after-tax", cl:(dashAll||R.irrL==null)?"neu":cls(R.irrL)},
-    {nm:"NPV · levered", big:dashAll?"—":fK(R.npvL), sec:"@ "+fPct(g("discount",SC),0)+" disc.", cl:dashAll?"neu":cls(R.npvL)},
+    {nm:"NPV · levered", big:dashAll?"—":fK(R.npvL), sec:"@ "+fPct(g("discount",sc),0)+" disc.", cl:dashAll?"neu":cls(R.npvL)},
     {nm:"Equity MOIC", big:(dashAll||R.moic==null)?"—":fX(R.moic), sec:"dist ÷ equity", cl:(dashAll||R.moic==null)?"neu":cls(R.moic-1)},
     {nm:"Break-even", big:(dashAll||!R.spb)?"—":String(cod+R.spb-1), sec:dashAll?"—":(R.spb?("year "+R.spb+" of "+N):"beyond hold"), cl:(!dashAll&&R.spb)?"pos":"neu"},
     {nm:"Min DSCR", big:(dashAll||R.minDSCR==null)?"—":fX(R.minDSCR), sec:dashAll?"—":"over debt life", cl:(dashAll||R.minDSCR==null)?"neu":(R.minDSCR>=1.25?"pos":R.minDSCR>=1?"neu":"neg")}
   ];
-  document.getElementById("heroStats").innerHTML=stats.map(function(c){
+  var statsHTML=stats.map(function(c){
     return '<div class="hstat '+c.cl+'"><div class="hnm">'+c.nm+'</div><div class="hbig">'+c.big+'</div><div class="hsec">'+c.sec+'</div></div>';
   }).join("");
+  return {verdict:verdict, statsHTML:statsHTML};
+}
+function renderHero(){
+  var lbl=document.getElementById("utilScLbl"); if(lbl) lbl.textContent=SCEN[SC];
+  var h=heroContent(SC);
+  document.getElementById("heroVerdict").innerHTML=h.verdict;
+  document.getElementById("heroStats").innerHTML=h.statsHTML;
+}
+// a full hero band for one scenario (used in the PDF export, which shows all three)
+function heroBlockHTML(sc){
+  var h=heroContent(sc);
+  return '<div class="hero" style="box-shadow:none;margin-bottom:14px;break-inside:avoid">'+
+    '<div class="hero-top"><div class="hero-kicker">'+SCEN[sc]+' scenario · buy-and-operate returns</div></div>'+
+    '<div class="hero-verdict">'+h.verdict+'</div>'+
+    '<div class="hero-stats">'+h.statsHTML+'</div></div>';
 }
 
 /* -------------------- RENDER: COMPARISON -------------------- */
@@ -1808,13 +1825,15 @@ document.getElementById("btnScan").addEventListener("click",function(){var t=doc
 function downloadAnalysisPdf(){
   var navBtn=document.querySelector('#tabnav button[data-tab="analysis"]');   // match on-screen state to the print
   if(navBtn && !navBtn.classList.contains("on")) navBtn.click();
+  // headline: all three scenario heroes
+  document.getElementById("heroPrintAll").innerHTML = ["c","b","o"].map(heroBlockHTML).join("");
   var sub=document.getElementById("printHeadSub");
   if(sub){ var dstr=new Date().toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
-    sub.textContent=SCEN[SC]+" scenario · "+Math.round(g("horizon",SC))+"-yr hold · discount "+fPct(g("discount",SC),0)+" · generated "+dstr+" · illustrative planning estimates"; }
+    sub.textContent="Conservative / Base / Optimistic · "+Math.round(g("horizon",SC))+"-yr hold · discount "+fPct(g("discount",SC),0)+" · detailed sensitivity/stress/terminal analysis below shown for the "+SCEN[SC]+" scenario · generated "+dstr+" · illustrative planning estimates"; }
   document.body.classList.add("print-analysis");
-  var cleanup=function(){ document.body.classList.remove("print-analysis"); window.removeEventListener("afterprint",cleanup); };
+  var cleanup=function(){ document.body.classList.remove("print-analysis"); document.getElementById("heroPrintAll").innerHTML=""; window.removeEventListener("afterprint",cleanup); };
   window.addEventListener("afterprint",cleanup);
-  setTimeout(function(){ window.print(); }, 60);   // let the tab switch + header paint before opening the dialog
+  setTimeout(function(){ window.print(); }, 60);   // let the tab switch + heroes + header paint before opening the dialog
 }
 document.getElementById("btnPdfAnalysis").addEventListener("click",downloadAnalysisPdf);
 
