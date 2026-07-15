@@ -127,7 +127,7 @@
   <header>
     <h1>EV Fast-Charging SPV — Comprehensive ROI Calculator</h1>
     <p class="sub">Long-term-hold (buy &amp; operate) return model for a DC fast-charging site · a first-principles buy-and-operate return model · Modules 0–9 + integrated utilization engine</p>
-    <p class="site">A reusable engine for <b>any</b> DC-fast-charging site — upload a site flyer or a utility tariff schedule and it auto-fills, or drive it by hand from your own CAPEX, tariff, and utilization. Levered &amp; after-tax · Conservative / Base / Optimistic · planning estimates — re-derive against metered &amp; quoted data. <b>Starts blank</b>; a built-in worked example lives on the Import / Export tab.</p>
+    <p class="site">A reusable engine for <b>any</b> DC-fast-charging site — upload a site flyer or a utility tariff schedule and it auto-fills, or drive it by hand from your own CAPEX, tariff, and utilization. Levered &amp; after-tax · Conservative / Base / Optimistic · planning estimates — re-derive against metered &amp; quoted data. <b>Starts blank</b> — enter your own site or drop a document.</p>
   </header>
   <div class="rule"></div>
 
@@ -250,10 +250,9 @@
           <h2 style="margin-bottom:8px">Save / load a scenario <span class="tag">starts blank on refresh</span></h2>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="xbtn" id="btnExportInputs">Export all inputs (.json)</button>
-            <button class="xbtn" id="btnLoadExample">Load worked example</button>
             <button class="xbtn" id="btnClearInputs" style="background:#fff;color:var(--navy2)">Clear all inputs</button>
           </div>
-          <p class="small" style="margin:8px 0 0">The model opens <b>blank</b> — enter your site, drop a doc above, or load the built-in worked example. Export gives an exact round-trip of all three scenarios.</p>
+          <p class="small" style="margin:8px 0 0">The model opens <b>blank</b> — enter your site or drop a doc above. Export gives an exact round-trip of all three scenarios.</p>
         </div>
         <div>
           <h2 style="margin-bottom:8px">…or paste text <span class="tag">tables, prose, or a rate sheet</span></h2>
@@ -290,7 +289,7 @@ var M = {
   opexInfl:{v:2.925, pct:true, status:"NEED"},
   taxRate:{v:0, pct:true, status:"NEED"},
   excise:{c:3.873, b:0.471, o:0.471, pct:true, status:"NEED"},
-  // ---- Module 1–2 · Hardware & CAPEX ----   (site-specific values default blank; load the example or import a doc)
+  // ---- Module 1–2 · Hardware & CAPEX ----   (site-specific values default blank; enter them or import a doc)
   ports:{v:0, status:"HAVE"},
   nameplate:{v:0, status:"HAVE"},
   ratedPort:{v:0, status:"HAVE"},
@@ -371,24 +370,12 @@ var M = {
   txnPct:{v:3, pct:true, status:"HAVE"}
 };
 
-// The built-in worked example — the model starts blank; this button restores it.
-var EXAMPLE={
-  ports:8, nameplate:1000, ratedPort:125, allInPerPost:186692,   // uses the simple $/post (itemized left blank)
-  land:100000, refreshCapex:200000,
-  sessPort:{c:7,b:9,o:11}, kwhSess:45,
-  retailOn:{c:0.55,b:0.55,o:0.55}, retailOff:{c:0.45,b:0.50,o:0.55}, retailCap:0.60,
-  cfs:35000, siteMaint:1125, insurance:15000, propTax:12000, mgmt:10000, storeAttach:90,
-  // pin the built-in multi-option rate table so the example always loads on the right tariff
-  tariffMode:"558", eBasic:309.79, ePeak:0.5089, eOff:0.108, dBasic:287.69, dPeak:16.85, dOff:5.07,
-  edBasic:4413.33, edPeak:0.32474, edOff:0.02795, edPeakD:5.08, edOffD:1.53
-};
 function applyPreset(obj){
-  SRC={};   // the built-in example and "clear" are not uploaded docs -> no HAVE tags
+  SRC={};   // "clear" is not an uploaded doc -> no HAVE tags
   for(var k in obj){ if(!M[k]) continue; var v=obj[k];
     if(v&&typeof v==="object"){ M[k].c=v.c; M[k].b=v.b; M[k].o=v.o; } else { M[k].v=v; } }
   buildInputs(); buildUtilInputs(); renderAll();
 }
-function loadExample(){ applyPreset(EXAMPLE); }
 function clearInputs(){   // re-blank every site-specific field (same as a fresh load), incl. the itemized CAPEX
   var keys=["ports","nameplate","ratedPort","allInPerPost","equipPerPost","installPerCharger","makeReady",
     "interconnect","siteCivil","permitting","land","refreshCapex","sessPort","kwhSess","retailOn","retailOff",
@@ -658,7 +645,7 @@ function renderHero(){
   var noi1 = R.rows[R.stYear-1].noi;
   var verdict;
   if(!hasSite){
-    verdict='Upload a site flyer or utility tariff schedule on the <b>Import / Export</b> tab to auto-fill this model — or enter a site by hand on the <b>Inputs</b> tab, where every critical field is outlined red until filled. (A built-in worked example is on the Import / Export tab.)';
+    verdict='Upload a site flyer or utility tariff schedule on the <b>Import / Export</b> tab to auto-fill this model — or enter a site by hand on the <b>Inputs</b> tab, where every critical field is outlined red until filled.';
   } else if(negCapital){
     verdict='<b>Grants exceed CAPEX — net invested capital is negative.</b> Entered CAPEX is '+fUSD(R.cap.exLand+R.cap.land)+', but incentives/grants total '+fUSD(R.cap.rebate)+' (Module 8). This is almost always a <b>double-counted grant</b>: if your CAPEX is an <b>out-of-pocket</b> figure (already net of the grant), set the grant to <b>0</b> in Module 8; otherwise enter the <b>gross</b> project cost so the grant nets against it.';
   } else if(noCapital){
@@ -1772,7 +1759,6 @@ document.getElementById("btnCopyKpi").addEventListener("click",function(){copyTe
 document.getElementById("btnDlKpi").addEventListener("click",function(){downloadFile(toCSV(kpiMatrix()),"KPIs_3scenarios.csv");flashMsg("Downloaded KPIs_3scenarios.csv");});
 
 document.getElementById("btnExportInputs").addEventListener("click",function(){downloadFile(inputsToJSON(),"ROI_inputs.json");impFlash("Exported inputs → ROI_inputs.json");});
-document.getElementById("btnLoadExample").addEventListener("click",function(){loadExample();impFlash("Loaded the worked example.");});
 document.getElementById("btnClearInputs").addEventListener("click",function(){clearInputs();impFlash("Inputs cleared — blank template.");});
 document.getElementById("impFile").addEventListener("change",function(e){var f=e.target.files&&e.target.files[0];if(f){importFromFile(f);this.value="";}});
 (function(){
@@ -1787,7 +1773,7 @@ document.getElementById("btnScan").addEventListener("click",function(){var t=doc
 
 document.getElementById("foot").innerHTML=
   'A general buy-and-operate return engine for a DC-fast-charging site, computed across Conservative / Base / Optimistic and years 0…N: energy throughput with an explicit ramp, TOU-split revenue, a MIN(energy / demand / energy+demand) utility-tariff selection, a network-services fee with floor &amp; escalator, itemized opex, 100% bonus depreciation with NOL carryforward, levered debt service, and a terminal residual. Drive it from your own site by editing the Module 0–9 inputs and the Module 5 tariff constants; every scenario recomputes live. '+
-  'It opens blank; the built-in <b>worked example</b> (Import / Export tab → “Load worked example”) is a fully-worked illustrative site — a ~1 MW, 8-port DC fast-charging station on a demand-metered EV tariff. Enter your own site, or drop a document / tariff schedule. '+
+  'It opens blank — enter your own site, or drop a document / tariff schedule to auto-fill it. '+
   'Illustrative planning estimates — not a tariff determination, appraisal, or tax/investment advice. Verify incentive &amp; tax items with counsel; re-derive against your utility’s service quote, metered interval data, and firm CAPEX bids.';
 
 /* init */
