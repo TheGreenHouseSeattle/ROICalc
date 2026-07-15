@@ -105,6 +105,22 @@
   .tabnav button.on{color:var(--navy);border-bottom-color:var(--navy);}
   .tabpanel{display:none;}
   .tabpanel.on{display:block;}
+  .print-only{display:none;}
+  .noprint{}
+  /* ---- print / save-as-PDF: isolate the Analysis tab ---- */
+  @media print{
+    @page{ margin:14mm; }
+    body.print-analysis{ background:#fff; }
+    body.print-analysis .wrap{ max-width:none; padding:0; }
+    body.print-analysis .hero, body.print-analysis .tabnav, body.print-analysis header,
+    body.print-analysis .rule, body.print-analysis #errBanner, body.print-analysis .noprint{ display:none !important; }
+    body.print-analysis .tabpanel{ display:none !important; }
+    body.print-analysis .tabpanel[data-tab="analysis"]{ display:block !important; }
+    body.print-analysis .print-only{ display:block; }
+    body.print-analysis .card, body.print-analysis table, body.print-analysis .grid{ break-inside:avoid; }
+    body.print-analysis h3.sec{ break-after:avoid; }
+    body.print-analysis *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
   /* ---- input confidence chips ---- */
   .schip{display:inline-block;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;letter-spacing:.03em;vertical-align:middle;white-space:nowrap;}
   .chip-have{background:#e3f3ea;color:#2f7d52;}
@@ -195,6 +211,14 @@
 
   <!-- ============ TAB: ANALYSIS ============ -->
   <div class="tabpanel" data-tab="analysis">
+    <div id="printHead" class="print-only" style="margin-bottom:14px;border-bottom:2px solid var(--navy);padding-bottom:10px">
+      <div style="font-size:19px;font-weight:700;color:var(--navy)">EV Fast-Charging SPV — Analysis</div>
+      <div id="printHeadSub" style="font-size:12px;color:var(--mut);margin-top:3px"></div>
+    </div>
+    <div class="noprint" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 16px">
+      <button class="xbtn" id="btnPdfAnalysis">Download Analysis (PDF)</button>
+      <span class="small">Opens your browser’s print dialog — choose <b>“Save as PDF”</b> as the destination. Exports the sensitivity, stress test, terminal bridge, power engine &amp; utilization sections for the selected scenario.</span>
+    </div>
     <h3 class="sec">Sensitivity — Levered after-tax IRR <span class="badge">utilization × retail price</span></h3>
     <div class="card">
       <p class="small" style="margin:0 0 12px">Rows scale stabilized energy throughput; columns scale the retail price to driver. Center cell (1.00 × 1.00) is the selected scenario's base. Green = higher IRR.</p>
@@ -1287,7 +1311,7 @@ var MATCHERS=[
   {t:[["equipPerPost","v"]],label:"Equipment BOM per post ($)",kind:"money",re:/equipment bom per post|equipment bom/i},
   {t:[["installPerCharger","v"]],label:"Installation / turnkey per charger ($)",kind:"money",re:/installation\s*\/\s*turnkey|turnkey per charger/i},
   {t:[["makeReady","b"]],label:"Make-ready / trenching / electrical ($)",kind:"money",re:/make[-\s]?ready/i},
-  {t:[["interconnect","b"]],label:"Utility interconnection ($)",kind:"money",re:/utility interconnection|interconnection/i},
+  {t:[["interconnect","b"]],label:"Utility interconnection ($)",kind:"money",re:/utility interconnection|interconnection\s*(?:fee|cost|charge|:|\$)/i},
   {t:[["siteCivil","v"]],label:"Site civil ($)",kind:"money",re:/site civil/i},
   {t:[["permitting","v"]],label:"Permitting & engineering ($)",kind:"money",re:/permitting/i},
   {t:[["softPct","v"]],label:"Soft costs / contingency",kind:"pct",re:/soft costs?/i},
@@ -1310,7 +1334,7 @@ var MATCHERS=[
   {t:[["permitting","v"]],label:"Engineering / permitting",kind:"money",cap:true,re:/engineering\s*[-–—]\s*\$\s*([\d,]+)/i},
   {t:[["makeReady","b"]],label:"Construction / make-ready",kind:"money",cap:true,re:/construction costs?\s*[–\-—]\s*\$\s*([\d,]+)/i},
   // ---- Utility tariff schedules (rate-sheet prose; kind rate = $/kWh cents-aware, demand = $/kW) ----
-  {t:[["tCustomer","v"]],label:"Customer / basic charge ($/mo)",kind:"money",cap:true,re:/(?:customer|basic|monthly service)\s*charge[^$\d]{0,25}\$?\s*([\d,]+(?:\.\d+)?)/i},
+  {t:[["tCustomer","v"]],label:"Customer / basic charge ($/mo)",kind:"money",cap:true,re:/(?:customer|basic|monthly service)\s*charge[^$\n]{0,25}?\$\s*([\d,]+(?:\.\d+)?)/i},
   {t:[["tEnergyOn","v"]],label:"On-peak energy ($/kWh)",kind:"rate",cap:true,re:/on-?peak[^$\n]{0,34}?\$?\s*(\d+(?:\.\d+)?)\s*(?:¢|cents?|\$)?\s*(?:per\s*|\/)?\s*kwh/i},
   {t:[["tEnergyOff","v"]],label:"Off-peak energy ($/kWh)",kind:"rate",cap:true,re:/off-?peak[^$\n]{0,34}?\$?\s*(\d+(?:\.\d+)?)\s*(?:¢|cents?|\$)?\s*(?:per\s*|\/)?\s*kwh/i},
   {t:[["tDemand","v"]],label:"Demand charge ($/kW/mo)",kind:"demand",cap:true,re:/demand\s*charge[^$\n]{0,25}?\$?\s*([\d,]+(?:\.\d+)?)\s*(?:per\s*|\/)?\s*kw\b/i}
@@ -1462,6 +1486,15 @@ function scanText(text){
     var gotRate = pend("tCustomer",null)!==null||pend("tEnergyOn",null)!==null||pend("tEnergyOff",null)!==null||pend("tDemand",null)!==null;
     if(gotRate && M.tariffMode.v!=="simple")
       add("tariffMode","v","Tariff engine → Simple (rate schedule parsed)","str",M.tariffMode.v,"simple","tariff rates detected");
+    // Looks like a tariff, but no numeric rates were found — often a referential rider that points to another
+    // schedule (e.g. Tacoma Power Schedule FC). Say so plainly instead of surfacing junk from the prose.
+    else if(!gotRate && PROPOSALS.length===0 && /tariff|rate schedule|schedule\s+(?:[A-Z0-9]{1,3}|FC)\b|per\s*kwh|customer charge|demand charge|energy charge/i.test(text)){
+      var referential=/otherwise applicable|applicable published rate schedule|charges of section|energy adder|rate schedule set forth|as set forth in chapter/i.test(text);
+      IMPORT_INFO='<b>Tariff document recognized, but it contains no rate figures to read.</b> '+
+        (referential? 'This schedule defines its charges <b>by reference to another rate schedule</b> (common for EV fast-charge riders) rather than listing $/kWh, $/kW and customer-charge numbers — so there is nothing to auto-fill from this file alone. '
+                    : 'No $/kWh, $/kW or customer-charge figures were found in this document. ')+
+        'Enter the base rates from the referenced (or companion) schedule into <b>Module 5</b> — customer charge, energy $/kWh and demand $/kW — applying any year-specific discount factors by hand.';
+    }
   }
   // Their sheets input day-avg utilization directly; this model derives it from sessions.
   if(utilFrac!==null){
@@ -1503,7 +1536,7 @@ function renderReview(){
   var warnBox = IMPORT_WARN ? '<div style="background:#fdeaea;border:1px solid #f0c0c0;border-radius:8px;padding:10px 13px;margin:0 0 10px;font-size:12.5px;line-height:1.5;color:#7a2e2e">'+IMPORT_WARN+'</div>' : '';
   if(!PROPOSALS.length){
     el.innerHTML = (infoBox||warnBox)
-      ? (warnBox+infoBox+'<p class="small" style="color:var(--mut)">No further fields to change — the items above are already set correctly.</p>')
+      ? (warnBox+infoBox)
       : '<p class="small" style="color:var(--warn)">No labeled inputs recognized. Try pasting more of the document (labels like “Retail price”, “nameplate”, “sessions per port”, “cap rate”, “make-ready”). Structured JSON import is exact if you have it.</p>';
     return;
   }
@@ -1770,6 +1803,20 @@ document.getElementById("impFile").addEventListener("change",function(e){var f=e
     var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) importFromFile(f);});
 })();
 document.getElementById("btnScan").addEventListener("click",function(){var t=document.getElementById("impPaste").value||"";if(t.trim().length<3){impFlash("Paste some document text first.",true);return;}impFlash("Scanned — review below.");scanText(t);});
+
+// Export the Analysis tab to PDF via the browser's native print-to-PDF (vector, selectable, no library).
+function downloadAnalysisPdf(){
+  var navBtn=document.querySelector('#tabnav button[data-tab="analysis"]');   // match on-screen state to the print
+  if(navBtn && !navBtn.classList.contains("on")) navBtn.click();
+  var sub=document.getElementById("printHeadSub");
+  if(sub){ var dstr=new Date().toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
+    sub.textContent=SCEN[SC]+" scenario · "+Math.round(g("horizon",SC))+"-yr hold · discount "+fPct(g("discount",SC),0)+" · generated "+dstr+" · illustrative planning estimates"; }
+  document.body.classList.add("print-analysis");
+  var cleanup=function(){ document.body.classList.remove("print-analysis"); window.removeEventListener("afterprint",cleanup); };
+  window.addEventListener("afterprint",cleanup);
+  setTimeout(function(){ window.print(); }, 60);   // let the tab switch + header paint before opening the dialog
+}
+document.getElementById("btnPdfAnalysis").addEventListener("click",downloadAnalysisPdf);
 
 document.getElementById("foot").innerHTML=
   'A general buy-and-operate return engine for a DC-fast-charging site, computed across Conservative / Base / Optimistic and years 0…N: energy throughput with an explicit ramp, TOU-split revenue, a MIN(energy / demand / energy+demand) utility-tariff selection, a network-services fee with floor &amp; escalator, itemized opex, 100% bonus depreciation with NOL carryforward, levered debt service, and a terminal residual. Drive it from your own site by editing the Module 0–9 inputs and the Module 5 tariff constants; every scenario recomputes live. '+
