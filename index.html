@@ -1,0 +1,2016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EV Fast-Charging SPV — Comprehensive ROI Calculator</title>
+<style>
+  :root{
+    --navy:#1f3a5f; --navy2:#2c5282; --ink:#1a202c; --mut:#5a6675;
+    --line:#d9e0e8; --bg:#f4f6f9; --card:#ffffff;
+    --good:#2f7d52; --warn:#b25b00; --bad:#b23a3a;
+    --chip:#eef3f8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 72px;}
+  header h1{font-size:25px;color:var(--navy);margin:0 0 4px;}
+  header .sub{color:var(--navy2);font-size:14px;margin:0 0 2px;}
+  header .site{color:var(--mut);font-size:12.5px;font-style:italic;margin:6px 0 0;}
+  .rule{height:3px;background:var(--navy);margin:14px 0 20px;border-radius:2px;opacity:.85;}
+  .grid{display:grid;gap:16px;}
+  .cols2{grid-template-columns:1fr 1fr;}
+  .cols3{grid-template-columns:1fr 1fr 1fr;}
+  .cols4{grid-template-columns:repeat(4,1fr);}
+  @media(max-width:820px){.cols2,.cols3,.cols4{grid-template-columns:1fr;}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+  .card h2{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--navy);margin:0 0 14px;}
+  .card h2 .tag{float:right;font-size:11px;font-weight:600;color:var(--mut);text-transform:none;letter-spacing:0;}
+  label{display:block;font-size:12px;color:var(--mut);margin:0 0 3px;}
+  .field{margin-bottom:11px;}
+  input[type=number],input[type=text],select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;
+    font-size:14px;color:var(--ink);background:#fcfdfe;font-variant-numeric:tabular-nums;}
+  input:focus,select:focus{outline:none;border-color:var(--navy2);box-shadow:0 0 0 3px rgba(44,82,130,.12);}
+  .unit{color:var(--mut);font-size:11px;}
+  /* scenario segmented control */
+  .segwrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 18px;}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff;}
+  .seg button{border:none;background:#fff;padding:9px 18px;font-size:13.5px;font-weight:600;color:var(--mut);cursor:pointer;}
+  .seg button.on{background:var(--navy);color:#fff;}
+  .seg button:not(:last-child){border-right:1px solid var(--line);}
+  /* dashboard stat */
+  .stat{border:1px solid var(--line);border-radius:10px;padding:15px 16px;background:#fff;position:relative;overflow:hidden;}
+  .stat .nm{font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--navy);font-weight:700;}
+  .stat .big{font-size:30px;font-weight:700;color:var(--ink);margin:5px 0 1px;font-variant-numeric:tabular-nums;}
+  .stat .sec{font-size:11.5px;color:var(--mut);}
+  .stat .bar{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--navy2);}
+  .stat.pos .bar{background:var(--good)}.stat.neg .bar{background:var(--bad)}.stat.neu .bar{background:#6b46c1}
+  .stat.pos .big{color:var(--good)}.stat.neg .big{color:var(--bad)}
+  /* tables */
+  .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums;}
+  th,td{padding:6px 9px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+  th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:#fff;}
+  thead th{color:var(--navy);border-bottom:2px solid var(--navy);font-size:11.5px;text-transform:uppercase;letter-spacing:.02em;}
+  tbody tr:hover td{background:#f7fafd;}
+  tr.tot td{font-weight:700;border-top:2px solid var(--line);}
+  tr.sub td:first-child{padding-left:20px;color:var(--mut);font-weight:400;}
+  .neg{color:var(--bad);}
+  /* status pills on inputs */
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+  .three .mini{font-size:9.5px;color:var(--mut);text-align:center;margin-bottom:2px;text-transform:uppercase;letter-spacing:.03em;}
+  .note{font-size:12px;color:var(--mut);line-height:1.5;}
+  .small{font-size:11px;color:var(--mut);}
+  details{margin-top:16px;}
+  details>summary{cursor:pointer;color:var(--navy);font-weight:700;font-size:14px;padding:10px 14px;background:#fff;border:1px solid var(--line);border-radius:9px;list-style:none;}
+  details>summary::-webkit-details-marker{display:none;}
+  details>summary::before{content:"▸ ";color:var(--navy2);}
+  details[open]>summary::before{content:"▾ ";}
+  .foot{font-size:11px;color:var(--mut);margin-top:26px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px;}
+  code{background:#eef1f5;padding:1px 5px;border-radius:4px;font-size:11.5px;}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13px;}
+  .kv:last-child{border-bottom:none;}.kv .k{color:var(--mut);}.kv .v{font-weight:600;font-variant-numeric:tabular-nums;}
+  .bridge{background:#f0f5fb;border:1px solid #cfe0f0;border-radius:10px;padding:14px 16px;font-variant-numeric:tabular-nums;}
+  .heat td{text-align:center;color:#fff;font-weight:600;border:1px solid #fff;}
+  .heat th{background:#fff;}
+  h3.sec{font-size:16px;color:var(--navy);margin:26px 0 10px;border-left:4px solid var(--navy2);padding-left:10px;}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;background:var(--chip);color:var(--navy2);margin-left:8px;}
+  .xbtn{padding:8px 14px;border:1px solid var(--navy2);background:var(--navy);color:#fff;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .xbtn:hover{background:var(--navy2);}
+  .dropzone{border:2px dashed var(--line);border-radius:10px;padding:22px 16px;text-align:center;cursor:pointer;background:#fbfcfe;transition:border-color .15s,background .15s;}
+  .dropzone:hover{border-color:var(--navy2);}
+  .dropzone.drag{border-color:var(--navy2);background:#eaf1fb;}
+  /* ---- hero / headline verdict ---- */
+  .hero{background:linear-gradient(135deg,#1f3a5f,#2c5282);border-radius:14px;padding:20px 22px;color:#fff;margin-bottom:16px;box-shadow:0 3px 16px rgba(31,58,95,.20);}
+  .hero-top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
+  .hero-kicker{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#bcd3ea;font-weight:600;}
+  .hero .seg{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);}
+  .hero .seg button{background:transparent;color:#cfe0f0;}
+  .hero .seg button.on{background:#fff;color:var(--navy);}
+  .hero .seg button:not(:last-child){border-right:1px solid rgba(255,255,255,.2);}
+  .hero-verdict{font-size:15px;line-height:1.55;color:#eaf2fb;margin-bottom:16px;max-width:940px;}
+  .hero-verdict b{color:#fff;}
+  .hero-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+  @media(max-width:820px){.hero-stats{grid-template-columns:repeat(2,1fr);}}
+  .hstat{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:12px 13px;}
+  .hnm{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#bcd3ea;font-weight:700;}
+  .hbig{font-size:26px;font-weight:700;margin:4px 0 1px;font-variant-numeric:tabular-nums;color:#fff;}
+  .hsec{font-size:10.5px;color:#a9c3de;}
+  .hstat.pos .hbig{color:#7ee2a8;}.hstat.neg .hbig{color:#ff9d9d;}
+  /* ---- tabs ---- */
+  .tabnav{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:22px;flex-wrap:wrap;position:sticky;top:0;background:var(--bg);z-index:20;padding-top:6px;}
+  .tabnav button{border:none;background:transparent;padding:11px 20px;font-size:14px;font-weight:600;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:8px 8px 0 0;}
+  .tabnav button:hover{color:var(--navy2);background:#eef3f8;}
+  .tabnav button.on{color:var(--navy);border-bottom-color:var(--navy);}
+  .tabpanel{display:none;}
+  .tabpanel.on{display:block;}
+  .print-only{display:none;}
+  .noprint{}
+  /* ---- print / save-as-PDF: isolate the Analysis tab ---- */
+  @media print{
+    @page{ margin:14mm; }
+    body.print-analysis{ background:#fff; }
+    body.print-analysis .wrap{ max-width:none; padding:0; }
+    body.print-analysis .tabnav, body.print-analysis header, body.print-analysis .wrap > .hero,
+    body.print-analysis .rule, body.print-analysis #errBanner, body.print-analysis .noprint{ display:none !important; }
+    body.print-analysis .tabpanel{ display:none !important; }
+    body.print-analysis .tabpanel[data-tab="analysis"]{ display:block !important; }
+    body.print-analysis .print-only{ display:block; }
+    /* the PDF shows all three scenario heroes (rendered into #heroPrintAll); strip the shadow */
+    body.print-analysis #heroPrintAll .hero{ break-inside:avoid; box-shadow:none; }
+    body.print-analysis .card, body.print-analysis table, body.print-analysis .grid{ break-inside:avoid; }
+    body.print-analysis h3.sec{ break-after:avoid; }
+    body.print-analysis *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+  /* ---- input confidence chips ---- */
+  .schip{display:inline-block;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;letter-spacing:.03em;vertical-align:middle;white-space:nowrap;}
+  .chip-have{background:#e3f3ea;color:#2f7d52;}
+  .chip-need{background:#fce4e4;color:#c0392b;}
+  .schip-slot{display:inline;}
+  /* red outline on a critical input left blank */
+  input.need-blank{border-color:#d94a4a;background:#fff7f7;box-shadow:0 0 0 2px rgba(217,74,74,.10);}
+  input.need-blank:focus{border-color:#c0392b;box-shadow:0 0 0 3px rgba(192,57,43,.15);}
+  .legendbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 0 16px;padding:9px 13px;background:#fff;border:1px solid var(--line);border-radius:9px;}
+  /* import progress bar */
+  .pbar-wrap{display:none;margin-top:12px;}
+  .pbar{height:9px;background:#e3e9f0;border-radius:6px;overflow:hidden;}
+  .pfill{height:100%;width:0;background:linear-gradient(90deg,var(--navy2),var(--good));transition:width .18s ease;}
+  .pbar-lbl{font-size:12px;color:var(--navy);font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="errBanner" style="display:none;background:#fdeaea;color:#b23a3a;border:1px solid #f0c0c0;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:600"></div>
+  <header>
+    <h1>EV Fast-Charging SPV — Comprehensive ROI Calculator</h1>
+    <p class="sub">Long-term-hold (buy &amp; operate) return model for a DC fast-charging site · a first-principles buy-and-operate return model · Modules 0–9 + integrated utilization engine</p>
+    <p class="site">A reusable engine for <b>any</b> DC-fast-charging site — upload a site flyer or a utility tariff schedule and it auto-fills, or drive it by hand from your own CAPEX, tariff, and utilization. Levered &amp; after-tax · Conservative / Base / Optimistic · planning estimates — re-derive against metered &amp; quoted data. <b>Starts blank</b> — enter your own site or drop a document.</p>
+    <p id="siteIdLine" style="display:none;color:var(--navy);font-size:14px;font-weight:600;margin:8px 0 0"></p>
+  </header>
+  <div class="rule"></div>
+
+  <!-- ============ HERO / HEADLINE VERDICT ============ -->
+  <div class="hero">
+    <div class="hero-top">
+      <div class="hero-kicker">Buy-and-operate returns · Conservative / Base / Optimistic</div>
+      <div class="seg" id="scenSeg">
+        <button data-sc="c">Conservative</button>
+        <button data-sc="b" class="on">Base</button>
+        <button data-sc="o">Optimistic</button>
+      </div>
+    </div>
+    <div class="hero-verdict" id="heroVerdict"></div>
+    <div class="hero-stats" id="heroStats"></div>
+  </div>
+
+  <!-- ============ TAB NAV ============ -->
+  <div class="tabnav" id="tabnav">
+    <button data-tab="inputs" class="on">1 · Inputs</button>
+    <button data-tab="results">2 · Results</button>
+    <button data-tab="analysis">3 · Analysis</button>
+    <button data-tab="io">Import / Export</button>
+  </div>
+
+  <!-- ============ TAB: INPUTS ============ -->
+  <div class="tabpanel on" data-tab="inputs">
+    <div class="card" style="margin-bottom:14px">
+      <h2>Site identification <span class="tag">appears on the exported analysis</span></h2>
+      <div class="grid cols2">
+        <div class="field"><label>Site name</label><input type="text" id="siteName" autocomplete="off"></div>
+        <div class="field"><label>Site address</label><input type="text" id="siteAddr" autocomplete="off"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:14px;background:#f0f5fb;border-color:#cfe0f0">
+      <h2>Site configuration &amp; utilization drivers <span class="tag">these set the energy throughput</span></h2>
+      <div id="utilDrivers"></div>
+    </div>
+    <div class="legendbar">
+      <span class="small" style="font-weight:600;color:var(--navy)">Input status:</span>
+      <span class="schip chip-need">NEED</span><span class="small">critical &amp; blank — outlined red until filled</span>
+      <span class="schip chip-have">HAVE</span><span class="small">pulled from an uploaded document / tariff schedule</span>
+      <span class="small" style="margin-left:auto">Upload a site flyer or rate sheet on the <b>Import / Export</b> tab to auto-fill. Scenario inputs show three cells (Cons / Base / Opt).</span>
+    </div>
+    <div id="inputs"></div>
+  </div>
+
+  <!-- ============ TAB: RESULTS ============ -->
+  <div class="tabpanel" data-tab="results">
+    <h3 class="sec">Scenario comparison <span class="badge">headline metrics</span></h3>
+    <div class="card"><div class="tblwrap"><table id="cmpTbl"></table></div></div>
+
+    <h3 class="sec">Annual P&amp;L &amp; cash flow — <span id="expScen">Base</span> <span class="badge">spreadsheet-ready</span></h3>
+    <div class="card">
+      <p class="small" style="margin:0 0 12px">The full year-by-year P&amp;L (Yr 0…N) for the selected scenario, with paste-ready export and a 3-scenario KPI block. <b>Download .xlsx</b> gives a fully-formatted Excel workbook — navy header, banded totals, accounting number formats, right-aligned figures. <b>Copy</b> puts tab-separated text on your clipboard for a quick paste; <b>.csv</b> is the raw unstyled data. Switch the scenario in the header above to change the columns. Depreciation is 100% bonus in Yr 1 (ex-land, net of grants); hardware refreshes every useful-life (Module 1–2) years; at a 0% entity rate the Yr-1 loss carries forward as an NOL, and land is never depreciated.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="xbtn" id="btnCopyPnl">Copy mini P&amp;L (TSV)</button>
+        <button class="xbtn" id="btnXlsxPnl">Download P&amp;L (.xlsx — styled)</button>
+        <button class="xbtn" id="btnDlPnl">Download P&amp;L (.csv — raw)</button>
+        <button class="xbtn" id="btnCopyKpi">Copy KPIs — 3 scenarios (TSV)</button>
+        <button class="xbtn" id="btnDlKpi">Download KPIs (.csv)</button>
+        <span class="small" id="expMsg" style="align-self:center;color:var(--good);font-weight:600"></span>
+      </div>
+      <div class="tblwrap"><table id="pnlTbl"></table></div>
+      <div id="pnlSummary"></div>
+      <details style="margin-top:12px">
+        <summary class="small">Show raw tab-separated text (for manual copy)</summary>
+        <textarea id="expPreview" readonly style="width:100%;height:180px;margin-top:8px;font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--line);border-radius:8px;padding:8px;background:#fbfcfe;white-space:pre;overflow:auto;color:var(--ink)"></textarea>
+      </details>
+    </div>
+  </div>
+
+  <!-- ============ TAB: ANALYSIS ============ -->
+  <div class="tabpanel" data-tab="analysis">
+    <div id="heroPrintAll" class="print-only"></div>
+    <div id="printHead" class="print-only" style="margin-bottom:14px;border-bottom:2px solid var(--navy);padding-bottom:10px">
+      <div style="font-size:19px;font-weight:700;color:var(--navy)">EV Fast-Charging SPV — Analysis</div>
+      <div id="printHeadSite" style="font-size:14px;font-weight:600;color:var(--ink);margin-top:2px;display:none"></div>
+      <div id="printHeadSub" style="font-size:12px;color:var(--mut);margin-top:3px"></div>
+    </div>
+    <div class="noprint" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 16px">
+      <button class="xbtn" id="btnPdfAnalysis">Download Analysis (PDF)</button>
+      <span class="small">Opens your browser’s print dialog — choose <b>“Save as PDF”</b> as the destination. Exports the sensitivity, stress test, terminal bridge, power engine, <b>battery vs. no-battery comparison</b> &amp; utilization sections for the selected scenario.</span>
+    </div>
+    <h3 class="sec">Sensitivity — Levered after-tax IRR <span class="badge">utilization × retail price</span></h3>
+    <div class="card">
+      <p class="small" style="margin:0 0 12px">Rows scale stabilized energy throughput; columns scale the retail price to driver. Center cell (1.00 × 1.00) is the selected scenario's base. Green = higher IRR.</p>
+      <div class="tblwrap"><table id="sensTbl" class="heat"></table></div>
+    </div>
+
+    <h3 class="sec">Scaling stress test <span class="badge">how hard the levers scale</span></h3>
+    <div class="card">
+      <p class="small" style="margin:0 0 12px">One knob — <b>Scaling intensity</b> (Module 3) — multiplies how hard the three levers scale over the hold: customer retail-price escalation, power-cost escalation, and EV-parc demand growth. 0% = everything flat-real (no growth); 100% = your base assumptions; 200% = twice as hard. The live model uses the value set in Module 3; this table sweeps it. Retail stays under its price ceiling (Module 4) and demand under its physical ceiling (Module 3). Note: because <b>power cost is one of the levers</b>, higher intensity lifts costs as well as revenue — so the effect can be non-monotonic, since faster power-cost escalation against capped prices/volume eventually eats margin. That tension is the point of the stress test.</p>
+      <div class="tblwrap"><table id="scaleTbl"></table></div>
+    </div>
+
+    <h3 class="sec">Terminal-value bridge <span class="badge">NPV closer</span></h3>
+    <div class="grid cols2">
+      <div class="card">
+        <h2>Residual equity at horizon</h2>
+        <div class="bridge" id="termBridge"></div>
+        <p class="small" style="margin-top:10px">You're holding, not selling — this residual capitalizes a stabilized NOI to close the NPV and value the asset you keep. Transaction costs and §1245 depreciation recapture apply <b>only</b> in a sale scenario (toggle in Module 9).</p>
+      </div>
+      <div class="card">
+        <h2>Power-cost breakdown <span class="tag">commercial tariff + optional premium</span></h2>
+        <div id="powerSel"></div>
+        <p class="small" style="margin-top:8px">The site pays a standard <b>commercial</b> utility rate — a customer/basic charge, an energy charge ($/kWh), and a demand charge billed on <b>kW</b> (your <b>expected billed demand</b> — the peak grid draw after any on-site battery curtails it), which is fixed year-to-year and dominates the bill at high-power, low-utilization sites. An optional <b>premium</b> (a $/kWh energy adder and/or a % uplift) sits on top. An on-site battery (Module 1–2 CAPEX) lowers that billed demand. Enter the rates in Module 5 or import a commercial rate schedule.</p>
+      </div>
+    </div>
+
+    <h3 class="sec">Battery vs. no-battery — demand-charge economics <span class="badge">is the battery worth it?</span></h3>
+    <div class="card">
+      <p class="small" style="margin:0 0 12px">Compares the annual power bill <b>with</b> the on-site battery (Module 5 tariff + expected billed demand) against a <b>no-battery counterfactual</b> (the separate no-battery tariff + the pre-battery peak). Both rate sets are entered independently because curtailing peak demand can move the site across a utility <b>schedule boundary</b> (e.g. PSE Schedule 26 → 25), and the two schedules carry different $/kWh and $/kW — so this captures the energy-rate trade-off, not just fewer billed kW. Savings are then weighed against the battery CAPEX (Module 1–2) for a payback and NPV. Turn it on with <b>“Compare battery vs. no-battery power cost?”</b> in Module 5.</p>
+      <div id="battCompare"></div>
+    </div>
+
+    <h3 class="sec">Utilization &amp; occupancy diagnostics <span class="badge">does not affect returns</span></h3>
+    <p class="note" style="margin:-4px 0 14px">Utilization is an <b>output</b> here, derived from the site drivers on the Inputs tab (sessions/day, kWh/session, ports, nameplate). Deriving it — rather than typing a stabilized number back into a model that also computes it — avoids circularity. The occupancy inputs below shape the occupancy / active-charging views only; they do <b>not</b> change kWh delivered or the returns. This panel shows the <span id="utilScLbl">Base</span> scenario.</p>
+    <div class="card" style="margin-bottom:14px">
+      <h2>Occupancy inputs <span class="tag">shape the views below, not kWh</span></h2>
+      <div id="utilDiag"></div>
+    </div>
+    <div class="card">
+      <h2>Outputs — stabilized utilization, the three definitions &amp; what feeds the model</h2>
+      <div id="utilResults"></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: IMPORT / EXPORT ============ -->
+  <div class="tabpanel" data-tab="io">
+    <div class="card">
+      <h2>Import / auto-fill — inputs, documents &amp; utility tariff schedules</h2>
+      <div id="dropZone" class="dropzone">
+        <input type="file" id="impFile" accept=".json,.csv,.tsv,.txt,.pdf,.xlsx,.xlsm" style="display:none">
+        <div style="font-size:26px;line-height:1">&#8681;</div>
+        <div style="font-weight:700;color:var(--navy);margin-top:4px">Drop a file here, or click to browse</div>
+        <div class="small" style="margin-top:5px;line-height:1.6">Saved inputs (<code>.json</code>) · <b>Excel assumptions book</b> · research doc · site-overview PDF · <b>utility tariff schedule (rate sheet)</b><br>Accepts <code>.xlsx .json .pdf .txt .csv</code> — read locally in your browser; every match goes to a review step before anything changes.</div>
+        <div class="small" id="impMsg" style="margin-top:6px;color:var(--good);font-weight:600"></div>
+      </div>
+      <div id="impProgress" class="pbar-wrap"><div class="pbar"><div id="impPfill" class="pfill"></div></div><div id="impPlbl" class="pbar-lbl">0%</div></div>
+      <div class="grid cols2" style="margin-top:14px">
+        <div>
+          <h2 style="margin-bottom:8px">Save / load a scenario <span class="tag">starts blank on refresh</span></h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="xbtn" id="btnExportInputs">Export all inputs (.json)</button>
+            <button class="xbtn" id="btnClearInputs" style="background:#fff;color:var(--navy2)">Clear all inputs</button>
+          </div>
+          <p class="small" style="margin:8px 0 0">The model opens <b>blank</b> — enter your site or drop a doc above. Export gives an exact round-trip of all three scenarios.</p>
+        </div>
+        <div>
+          <h2 style="margin-bottom:8px">…or paste text <span class="tag">tables, prose, or a rate sheet</span></h2>
+          <textarea id="impPaste" placeholder="Paste text from a doc or a utility tariff schedule (open the PDF, select-all, copy)…" style="width:100%;height:74px;font:12px/1.4 -apple-system,sans-serif;border:1px solid var(--line);border-radius:8px;padding:8px;background:#fbfcfe;color:var(--ink)"></textarea>
+          <div style="margin-top:8px"><button class="xbtn" id="btnScan">Scan pasted text</button></div>
+        </div>
+      </div>
+      <div id="impReview" style="margin-top:14px"></div>
+    </div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+"use strict";
+// surface any runtime error instead of failing silently (so the dashboard never half-renders unexplained)
+window.onerror=function(msg,src,line){var b=document.getElementById("errBanner");if(b){b.style.display="block";b.textContent="⚠ Script error: "+msg+(line?(" (line "+line+")"):"")+" — try a hard reload (⌘⇧R). If it persists, send this message to Claude.";}return false;};
+/* ============================================================================
+   MODEL DATA  — Modules 0–9 defaults: interconnection, a demand-metered EV
+   tariff (energy-only / demand-only / energy+demand rate groups), and a
+   flexible-utilization / year-over-year return build. Edit any value; the
+   engine recomputes all three scenarios live.
+   ============================================================================ */
+var SC = "b";                          // dashboard scenario
+var SCEN = {c:"Conservative", b:"Base", o:"Optimistic"};
+
+// each field: single value (v) OR scenario triple (c/b/o). pct=stored as percent.
+var M = {
+  // ---- Module 0 · Site & scenario ----
+  cod:{v:0, status:"HAVE"},                     // commercial operation date; Yr 1 = COD
+  horizon:{v:0, pct:false, status:"DECIDE"},
+  discount:{v:0, pct:true, status:"DECIDE"},
+  opexInfl:{v:2.925, pct:true, status:"NEED"},
+  taxRate:{v:0, pct:true, status:"NEED"},
+  excise:{c:0.471, b:0.471, o:0.471, pct:true, status:"NEED"},
+  // ---- Module 1–2 · Hardware & CAPEX ----   (site-specific values default blank; enter them or import a doc)
+  ports:{v:0, status:"HAVE"},
+  nameplate:{v:0, status:"HAVE"},
+  ratedPort:{v:0, status:"HAVE"},
+  hwLife:{c:0, b:0, o:0, status:"NEED"},
+  capexMode:{v:"simple", status:"DECIDE"},          // "simple" = one all-in $/post · "detailed" = itemized build-up
+  allInPerPost:{v:0, status:"DECIDE"},              // all-in CAPEX per post, ex-land
+  equipPerPost:{v:0, status:"HAVE"},
+  installPerCharger:{v:0, status:"HAVE"},
+  makeReady:{c:0, b:0, o:0, status:"NEED"},
+  interconnect:{c:0, b:0, o:0, status:"HAVE"},
+  siteCivil:{v:0, status:"NEED"},
+  permitting:{v:0, status:"NEED"},
+  softPct:{v:0, pct:true, status:"NEED"},
+  land:{v:0, status:"DECIDE"},
+  refreshCapex:{v:0, status:"NEED"},   // recurs every `hwLife` years
+  batteryCapex:{v:0, status:"DECIDE"}, // on-site battery storage (behind-the-meter; curtails the demand charge)
+  // ---- Module 3 · Utilization & energy ----
+  rampY1:{v:0, pct:true, status:"NEED"},
+  rampYears:{v:0, status:"NEED"},
+  parcCAGR:{v:0, pct:true, status:"NEED"},
+  maxUtil:{v:0, pct:true, status:"NEED"},                // physical throughput ceiling (day-avg util %); caps demand growth
+  scaleIntensity:{v:100, pct:true, status:"DECIDE"},     // stress knob: ×all growth/escalation (retail, power, EV-demand)
+  onPeakShare:{v:0, pct:true, status:"HAVE"},
+  // util-calculator inputs (per-port, for the integrated engine)
+  sessPort:{c:0, b:0, o:0, status:"HAVE"},
+  durMin:{v:0, status:"HAVE"},
+  kwhSess:{v:0, status:"HAVE"},
+  idle:{v:0, pct:true, status:"HAVE"},
+  availHours:{v:0, status:"HAVE"},
+  effkw:{v:0, status:"HAVE"},
+  // ---- Module 4 · Revenue ----
+  retailOn:{c:0, b:0, o:0, status:"DECIDE"},
+  retailOff:{c:0, b:0, o:0, status:"DECIDE"},
+  retailCap:{v:0, status:"DECIDE"},                // customer price stabilizes here; 0 = uncapped
+  priceEsc:{c:2.5, b:3, o:3.5, pct:true, status:"NEED"},
+  // WA Clean Fuel Standard credit — DC fast chargers only. $/port/yr, guaranteed for a set window, then
+  // it either expires or continues depending on the toggle (see meeting note: "10K per port per yr for 4-5 yrs").
+  cfsPerPort:{v:0, status:"NEED"},              // $/port/yr credit
+  cfsYears:{v:5, status:"DECIDE"},              // guaranteed years (typically 4–5)
+  cfsContinue:{v:"no", status:"DECIDE"},        // "no" = credit expires after the window · "yes" = keeps running
+  ancillary:{v:0, status:"NEED"},
+  storeAttach:{v:0, pct:true, status:"DECIDE"},    // % of charging customers who also shop the co-located store
+  storeMargin:{v:0, status:"DECIDE"},              // incremental EBIT $ per shopping visit
+  // ---- Module 5 · Power cost (commercial utility tariff) ----
+  // A standard commercial demand rate: customer/basic charge + energy ($/kWh, TOU-split) + demand ($/kW/mo).
+  // All rates default to 0 — enter them or import a commercial rate schedule (e.g. a Large-Demand General Service sheet).
+  preBatteryDemand:{v:0, status:"NEED"},            // pre-battery peak demand (kW) — natural grid peak WITHOUT the battery; the denominator for the grid-energy fraction
+  billedDemand:{v:0, status:"NEED"},                // expected billed demand (kW) — peak grid draw actually billed, after any on-site battery
+  powerEsc:{v:0, pct:true, status:"NEED"},
+  tCustomer:{v:0, status:"NEED"},                   // $/mo customer / basic charge
+  tEnergyOn:{v:0, status:"NEED"},                   // $/kWh on-peak energy (flat schedules: same as off-peak)
+  tEnergyOff:{v:0, status:"NEED"},                  // $/kWh off-peak energy
+  tDemand:{v:0, status:"NEED"},                     // $/kW/mo demand charge (seasonal schedules: annual average)
+  // Optional premium on top of the commercial rate (off by default — see meeting note: "commercial rates + premium")
+  premiumOn:{v:"no", status:"DECIDE"},              // "no" = commercial rate only · "yes" = apply the premium fields below
+  premiumKwh:{v:0, status:"DECIDE"},                // $/kWh energy adder
+  premiumPct:{v:0, pct:true, status:"DECIDE"},      // % uplift on the whole commercial power bill
+  // ---- Battery vs. no-battery comparison ----
+  // Module 5's tariff (above) + billedDemand is the WITH-battery case (e.g. PSE Sched 25). The fields below hold the
+  // NO-battery counterfactual tariff (e.g. Sched 26), billed on the pre-battery peak. Toggle shows the comparison.
+  batteryCompare:{v:"no", status:"DECIDE"},         // "yes" = compute & show the battery vs no-battery power-cost delta
+  nbCustomer:{v:0, status:"DECIDE"},                // no-battery tariff — $/mo customer charge
+  nbEnergyOn:{v:0, status:"DECIDE"},                // no-battery tariff — $/kWh on-peak
+  nbEnergyOff:{v:0, status:"DECIDE"},               // no-battery tariff — $/kWh off-peak
+  nbDemand:{v:0, status:"DECIDE"},                  // no-battery tariff — $/kW/mo demand
+  // ---- Module 6 · Opex ----
+  feeKwh:{v:0, status:"HAVE"},
+  feeFloorMo:{v:0, status:"HAVE"},
+  feeEsc:{v:0, pct:true, status:"HAVE"},
+  siteMaint:{v:0, status:"HAVE"},
+  insurance:{v:0, status:"NEED"},
+  propTax:{v:0, status:"NEED"},
+  network:{v:0, status:"NEED"},
+  reserve:{v:0, status:"NEED"},
+  groundLease:{v:0, status:"DECIDE"},                // flat $/yr — used only when the per-stall lease below is 0
+  leasePerStallMo:{v:0, status:"DECIDE"},            // ground lease as $/stall/month (× ports × 12); overrides the flat lease when > 0
+  procFeePct:{v:0, pct:true, status:"NEED"},         // payment processing fee — % of gross charging revenue (paid to Electric Era)
+  mgmt:{v:0, status:"NEED"},
+  // ---- Module 7 · Financing ----
+  debtPct:{v:0, pct:true, status:"DECIDE"},
+  rate:{v:0, pct:true, status:"NEED"},
+  term:{v:0, status:"NEED"},
+  // ---- Module 8 · Incentives & tax ----
+  fed30C:{v:0, status:"HAVE"},
+  makeReadyRebate:{v:0, status:"NEED"},
+  neviGrant:{v:0, status:"NEED"},
+  // ---- Module 9 · Terminal value ----
+  capRate:{v:0, pct:true, status:"DECIDE"},
+  landAppr:{v:0, pct:true, status:"NEED"},
+  ebitdaMult:{v:0, status:"DECIDE"},
+  termMethod:{v:"cap", status:"DECIDE"},   // cap | gordon | ebitda
+  gordonG:{v:0, pct:true, status:"NEED"},
+  sold:{v:"no", status:"DECIDE"},           // no | yes
+  txnPct:{v:0, pct:true, status:"HAVE"}
+};
+
+function applyPreset(obj){
+  SRC={};   // "clear" is not an uploaded doc -> no HAVE tags
+  for(var k in obj){ if(!M[k]) continue; var v=obj[k];
+    if(v&&typeof v==="object"){ M[k].c=v.c; M[k].b=v.b; M[k].o=v.o; } else { M[k].v=v; } }
+  buildInputs(); buildUtilInputs(); renderAll();
+}
+function clearInputs(){   // reset to the blank launch state: every numeric input → 0, except the four assumption bands
+  SITE={name:"",address:""};
+  var KEEP={opexInfl:1, excise:1, scaleIntensity:1, priceEsc:1};   // opex inflation · WA excise · scaling intensity · price escalation
+  var Z={};
+  for(var k in M){ var f=M[k];
+    if(KEEP[k]) continue;
+    if(typeof f.v==="string") continue;                            // leave mode selects (capexMode / premiumOn / termMethod / sold)
+    Z[k]=(f.c!==undefined)?{c:0,b:0,o:0}:0;
+  }
+  M.premiumOn.v="no"; M.capexMode.v="simple"; M.termMethod.v="cap"; M.sold.v="no"; M.cfsContinue.v="no"; M.batteryCompare.v="no";   // reset the mode toggles
+  applyPreset(Z);
+  syncSiteInputs();
+}
+
+// helper: read a field for scenario sc (or single). returns raw number; pct divided by 100.
+function g(key, sc){
+  var f = M[key];
+  var raw = (f.c!==undefined) ? f[sc] : f.v;
+  if(typeof raw === "string") return raw;
+  return f.pct ? raw/100 : raw;
+}
+
+/* -------------------- CORE ENGINE -------------------- */
+function computeCapex(sc){
+  var ports = g("ports",sc);
+  // itemized build-up
+  var equip = g("equipPerPost",sc)*ports, install = g("installPerCharger",sc)*ports;
+  var mk = g("makeReady",sc), inter = g("interconnect",sc), civil = g("siteCivil",sc), permit = g("permitting",sc);
+  var hard = equip+install+mk+inter+civil+permit;
+  var soft = hard*g("softPct",sc);
+  var detailedEx = hard+soft;
+  // simple all-in $/post overrides the itemized build-up whenever it's > 0 (unless simple = 0 → fall back to itemized)
+  // — but it NEVER overrides the battery: the battery is added on top, in both simple and detailed modes.
+  var simpleEx = g("allInPerPost",sc)*ports;
+  var battery = g("batteryCapex",sc);   // on-site battery storage (behind-the-meter; curtails demand)
+  var exLand;
+  if(g("allInPerPost",sc)>0){ exLand=simpleEx; equip=simpleEx; install=0; mk=0; inter=0; civil=0; permit=0; soft=0; }
+  else { exLand=detailedEx; }
+  exLand += battery;   // battery always included, on top of the $/post or itemized build-up
+  var land = g("land",sc);
+  // incentives reduce depreciable/effective capital
+  var rebate = g("makeReadyRebate",sc)+g("neviGrant",sc)+g("fed30C",sc);
+  var total = exLand+land - rebate;
+  var deprBasis = Math.max(0, exLand - rebate);   // depreciate cash actually spent, ex-land & net of grants/credits
+  return {equip:equip, install:install, mk:mk, inter:inter, civil:civil, permit:permit, battery:battery,
+          soft:soft, exLand:exLand, land:land, rebate:rebate, total:total, ports:ports, deprBasis:deprBasis};
+}
+
+// Commercial demand tariff: customer/basic charge + energy (TOU-split) + demand ($/kW/mo on billed demand),
+// with an OPTIONAL premium (a $/kWh energy adder and/or a % uplift on the whole bill). Returns the components
+// so the readout can itemise them. No rate schedule is baked in — all rates come from the inputs / an import.
+function powerStructures(sc, energy){
+  var onS = g("onPeakShare",sc), peakE = energy*onS, offE = energy*(1-onS);
+  var billed = g("billedDemand",sc);           // expected billed demand (kW) — the peak the battery curtails you to
+  // Demand-only battery (grid-charged): the battery shaves the peak kW, but the SAME total kWh is still drawn from
+  // the grid (just time-shifted). So the DEMAND charge is billed on the reduced `billed` kW, while the ENERGY charge
+  // stays on the FULL annual energy. (A battery only reduces billed energy if it's charged from on-site generation.)
+  var customer = 12*g("tCustomer",sc);
+  var energyC  = peakE*g("tEnergyOn",sc) + offE*g("tEnergyOff",sc);                // full energy — battery shifts load, doesn't displace kWh
+  var demandC  = 12*billed*g("tDemand",sc);
+  var base = customer + energyC + demandC;
+  var premOn = (g("premiumOn",sc)==="yes");
+  var premPct = premOn ? base*g("premiumPct",sc) : 0;            // % uplift on the whole commercial bill
+  var premKwh = premOn ? energy*g("premiumKwh",sc) : 0;          // $/kWh energy adder — on full energy
+  var premium = premPct + premKwh;
+  var cost = base + premium;
+  return {min:cost, base:base, customer:customer, energyC:energyC, demandC:demandC,
+          premium:premium, premPct:premPct, premKwh:premKwh, premOn:premOn, billed:billed,
+          gridFrac:1, gEnergy:energy,
+          which:"Commercial tariff"+(premOn?" + premium":"")};
+}
+
+// No-battery counterfactual power bill: uses the SEPARATE no-battery rate set (nb*), the full pre-battery peak
+// as billed demand, and ALL energy from the grid (no battery haircut). A separate rate set is essential because
+// curtailing peak demand can move the site across a utility schedule boundary (e.g. PSE Sched 26 → 25), and the
+// two schedules carry different $/kWh and $/kW — so a "same rates, fewer kW" delta would misstate the savings.
+function powerNoBat(sc, energy){
+  var onS=g("onPeakShare",sc), peakE=energy*onS, offE=energy*(1-onS);
+  var preBat=g("preBatteryDemand",sc);                                  // full peak, billed with no battery
+  var customer=12*g("nbCustomer",sc);
+  var energyC =peakE*g("nbEnergyOn",sc)+offE*g("nbEnergyOff",sc);       // gridFrac = 1: every kWh is grid-supplied
+  var demandC =12*preBat*g("nbDemand",sc);
+  var base=customer+energyC+demandC;
+  var premOn=(g("premiumOn",sc)==="yes");                               // apply the same premium settings to both cases
+  var premPct=premOn?base*g("premiumPct",sc):0, premKwh=premOn?energy*g("premiumKwh",sc):0;
+  var premium=premPct+premKwh;
+  return {min:base+premium, base:base, customer:customer, energyC:energyC, demandC:demandC,
+          premium:premium, premOn:premOn, billed:preBat};
+}
+
+// amortization: level annual payment. returns per-year {interest, principal, service, balance}
+function amortize(loan, rate, term, N){
+  var out=[]; var bal=loan;
+  var pmt = rate>0 ? loan*rate/(1-Math.pow(1+rate,-term)) : (term>0?loan/term:0);
+  for(var t=1;t<=N;t++){
+    if(t<=term && bal>1e-6){
+      var interest=bal*rate; var principal=Math.min(pmt-interest,bal); bal-=principal;
+      out.push({interest:interest, principal:principal, service:interest+principal, balance:Math.max(bal,0)});
+    } else out.push({interest:0,principal:0,service:0,balance:0});
+  }
+  return {rows:out, pmt:pmt};
+}
+
+function compute(sc, ov){
+  ov = ov || {};
+  var N = Math.max(1, Math.round(g("horizon",sc)));   // hold ≥ 1 yr so the engine never loops over an empty schedule
+  var cap = computeCapex(sc);
+  var loan = cap.total*g("debtPct",sc);
+  var equity = cap.total - loan;
+  var am = amortize(loan, g("rate",sc), Math.round(g("term",sc)), N);
+
+  // stabilized annual energy — always derived bottom-up from the utilization telemetry (sessions × kWh × ports × 365).
+  // Utilization is an OUTPUT of these factors, never a typed input → no circularity.
+  var stab0 = cap.ports * g("sessPort",sc) * g("kwhSess",sc) * 365;
+  var stab = stab0 * (ov.energyMult||1);
+  var rampY1 = g("rampY1",sc), rampYears = Math.max(1,Math.round(g("rampYears",sc)));
+  // scaling intensity: one knob that multiplies how hard the three levers scale (retail ↑, power ↑, EV-demand ↑)
+  var si = (ov.scaleIntensity!==undefined) ? ov.scaleIntensity : g("scaleIntensity",sc);
+  var parc = g("parcCAGR",sc)*si;
+  var ceiling = (g("maxUtil",sc)>0 && g("nameplate",sc)>0) ? g("nameplate",sc)*8760*g("maxUtil",sc) : Infinity;   // physical throughput cap (only when nameplate set)
+  var onS = g("onPeakShare",sc);
+  var retOn0 = g("retailOn",sc)*(ov.retailMult||1), retOff0 = g("retailOff",sc)*(ov.retailMult||1);
+  var capEff = g("retailCap",sc)>0 ? g("retailCap",sc)*(ov.retailMult||1) : Infinity;     // customer-price ceiling
+  var pEsc = g("priceEsc",sc)*si, oInfl = g("opexInfl",sc), powEsc = g("powerEsc",sc)*si, feeEsc = g("feeEsc",sc);
+  var excise = g("excise",sc), taxRate = g("taxRate",sc);
+  var cfsFull = g("cfsPerPort",sc)*cap.ports, cfsYears = Math.round(g("cfsYears",sc)), cfsContinue = (g("cfsContinue",sc)==="yes");
+  var anc = g("ancillary",sc), procFeePct = g("procFeePct",sc);
+  var attach=g("storeAttach",sc), perVisit=g("storeMargin",sc);
+  var sessionsYr = cap.ports * g("sessPort",sc) * 365;   // charging customers per year at stabilization
+  var feeKwh=g("feeKwh",sc), floor=g("feeFloorMo",sc)*12;
+  var leaseAnnual = g("leasePerStallMo",sc)>0 ? g("leasePerStallMo",sc)*cap.ports*12 : g("groundLease",sc);   // per-stall/mo overrides the flat lease
+  var opexFixed = g("siteMaint",sc)+g("insurance",sc)+g("propTax",sc)+g("network",sc)+g("reserve",sc)+leaseAnnual+g("mgmt",sc);
+  var hwl = Math.max(1, Math.round(g("hwLife",sc))), refreshAmt = g("refreshCapex",sc);
+
+  var rows=[]; var nolU=0, nolL=0; var accumDepr=0;
+  for(var t=1;t<=N;t++){
+    // ramp: linear from Y1 to 100% over rampYears, then parc CAGR
+    var rf;
+    if(t<=rampYears) rf = rampY1 + (1-rampY1)*(t-1)/rampYears; // reaches ~1.0 the year after ramp
+    else rf = Math.pow(1+parc, t-rampYears);
+    if(t===rampYears) rf = 1.0;
+    var rfUsed = stab>0 ? Math.min(rf, ceiling/stab) : 0;    // growth clamped at the physical throughput ceiling (caps energy AND customer count)
+    var energy = stab*rfUsed;
+    var peakE=energy*onS, offE=energy*(1-onS);
+
+    var esc=Math.pow(1+pEsc,t-1);
+    var priceOn=Math.min(retOn0*esc, capEff), priceOff=Math.min(retOff0*esc, capEff);   // customer price stabilizes at the ceiling
+    var revPeak=peakE*priceOn, revOff=offE*priceOff;
+    var cfs = (t<=cfsYears || cfsContinue) ? cfsFull : 0;   // CFS runs for the guaranteed window, then continues only if toggled
+    var gross=revPeak+revOff;
+    var revenue=gross+cfs+anc;
+    var exciseAmt=(revenue-cfs)*excise;   // WA excise on charging + ancillary sales only — the CFS credit is not a taxable sale
+
+    var live=(energy>0 || g("nameplate",sc)>0);   // an actual site exists; otherwise a blank template reads neutral $0
+    var pw=powerStructures(sc, energy);
+    var power=live ? pw.min*Math.pow(1+powEsc,t-1) : 0;
+    var powerNB=live ? powerNoBat(sc, energy).min*Math.pow(1+powEsc,t-1) : 0;   // no-battery counterfactual bill (same energy path & escalation)
+    var fee=(energy>0) ? Math.max(energy*feeKwh, floor)*Math.pow(1+feeEsc,t-1) : 0;   // no throughput → no LTSA fee/floor
+    var opex=opexFixed*Math.pow(1+oInfl,t-1);
+
+    // co-location retail: incremental EBIT from charging customers who also shop (ramps with traffic, escalates with prices)
+    var storeEBIT = sessionsYr*rfUsed * attach * perVisit * esc;
+
+    var processing=gross*procFeePct;   // card/payment processing on charging sales only (not CFS credits or ancillary)
+    var noi=revenue-exciseAmt-power-fee-processing-opex+storeEBIT;
+
+    var isRefresh = (t % hwl === 0) && (t < N);   // hardware replaced at the end of each useful-life cycle (not in the exit year)
+    var depr = (t===1? cap.deprBasis : 0) + (isRefresh? refreshAmt : 0); accumDepr+=depr;   // 100% bonus on original + each refresh
+    var interest=am.rows[t-1].interest, service=am.rows[t-1].service;
+
+    // unlevered tax (no interest deduction) with NOL carryforward
+    var tU=noi-depr; if(tU<0){nolU+=-tU; var taxU=0;} else {var use=Math.min(nolU,tU); nolU-=use; taxU=(tU-use)*taxRate;}
+    // levered tax (interest deductible)
+    var tL=noi-interest-depr; if(tL<0){nolL+=-tL; var taxL=0;} else {var useL=Math.min(nolL,tL); nolL-=useL; taxL=(tL-useL)*taxRate;}
+
+    var maintCapex = isRefresh ? refreshAmt : 0;
+    var uFCF=noi-maintCapex-taxU;
+    var lFCF=noi-maintCapex-taxL-service;
+    var dscr=service>0? noi/service : null;
+
+    rows.push({t:t, energy:energy, rf:rf, revenue:revenue, gross:gross, excise:exciseAmt, storeEBIT:storeEBIT,
+      power:power, powerNB:powerNB, fee:fee, processing:processing, opex:opex, noi:noi, depr:depr, interest:interest, service:service,
+      taxU:taxU, taxL:taxL, maintCapex:maintCapex, uFCF:uFCF, lFCF:lFCF, dscr:dscr,
+      balance:am.rows[t-1].balance});
+  }
+
+  // terminal value at horizon
+  var noiN=rows[N-1].noi, r=g("discount",sc), cap9=g("capRate",sc);
+  var method=g("termMethod",sc);
+  var tv;
+  if(method==="gordon"){ var gg=g("gordonG",sc); tv=(r>gg)? noiN*(1+gg)/(r-gg):0; }
+  else if(method==="ebitda"){ tv=noiN*g("ebitdaMult",sc); }
+  else tv=cap9>0? noiN/cap9 : 0;
+  var landH=cap.land*Math.pow(1+g("landAppr",sc),N);
+  var balN=rows[N-1].balance;
+  var sold=(g("sold",sc)==="yes");
+  var txn=sold? tv*g("txnPct",sc):0;
+  var recapture=sold? accumDepr*taxRate:0;
+  var residualU=tv+landH-(sold?txn:0);                 // unlevered residual (no debt)
+  var residualL=tv+landH-balN-(sold?(txn+recapture):0); // levered residual
+
+  // cash-flow vectors for IRR/NPV
+  var uCF=[-cap.total], lCF=[-equity];
+  for(var i=0;i<N;i++){ uCF.push(rows[i].uFCF); lCF.push(rows[i].lFCF); }
+  uCF[N]+=residualU; lCF[N]+=residualL;
+
+  // metrics
+  var npv=function(rate,cf){var s=0;for(var k=0;k<cf.length;k++)s+=cf[k]/Math.pow(1+rate,k);return s;};
+  // scan -99%..+1000% for a sign change, then bisect — robust to very high IRRs & odd brackets
+  var irr=function(cf){
+    var anyFlow=false; for(var q=0;q<cf.length;q++){ if(Math.abs(cf[q])>1e-6){ anyFlow=true; break; } }
+    if(!anyFlow) return null;   // empty/blank model → IRR undefined
+    var step=0.01, prev=npv(-0.99,cf), a, b;
+    for(var r=-0.98; r<=10.0001; r+=step){
+      var cur=npv(r,cf);
+      if(isFinite(prev)&&isFinite(cur)&&prev*cur<0){ a=r-step; b=r;   // strict sign change (0×0 is not a crossing)
+        for(var it=0;it<80;it++){var m=(a+b)/2, v=npv(m,cf); if(Math.abs(v)<1) return m; if(npv(a,cf)*v<0) b=m; else a=m;}
+        return (a+b)/2;
+      }
+      prev=cur;
+    }
+    return null;   // no sign change → IRR undefined (e.g. all-negative or all-positive cash flows)
+  };
+
+  var stYear=Math.min(rampYears, N);              // first stabilized year
+  var coc=equity>0? rows[stYear-1].lFCF/equity : null;   // stabilized cash-on-cash (levered)
+  var dscrs=rows.filter(function(x){return x.dscr!==null;}).map(function(x){return x.dscr;});
+  var minDSCR=dscrs.length?Math.min.apply(null,dscrs):null;
+  var avgDSCR=dscrs.length?dscrs.reduce(function(a,b){return a+b;},0)/dscrs.length:null;
+
+  // MOIC (levered): sum positive distributions incl residual / equity
+  var dist=0; for(var j=1;j<=N;j++) dist+=Math.max(0,lCF[j]); // includes residual in yr N
+  var moic=equity>0? dist/equity : null;
+
+  // payback (levered operating, excludes terminal)
+  var cum=-equity, spb=null, dcum=-equity, dpb=null;
+  for(var p=1;p<=N;p++){ cum+=rows[p-1].lFCF; if(spb===null&&cum>=0)spb=p;
+    dcum+=rows[p-1].lFCF/Math.pow(1+r,p); if(dpb===null&&dcum>=0)dpb=p; }
+
+  // ---- battery vs. no-battery economics (isolates the power-bill effect of the on-site battery) ----
+  var battCapex=cap.battery, battOn=(g("batteryCompare",sc)==="yes");
+  var nomSave=0, npvSave=0, cumSave=0, battPayback=null;
+  for(var bt=1;bt<=N;bt++){ var sv=rows[bt-1].powerNB-rows[bt-1].power; nomSave+=sv; npvSave+=sv/Math.pow(1+r,bt);
+    cumSave+=sv; if(battPayback===null && battCapex>0 && cumSave>=battCapex) battPayback=bt; }
+  var eStab=rows[stYear-1].energy;                                   // stabilized (post-ramp, pre-escalation) energy
+  var billWith=powerStructures(sc, eStab), billNB=powerNoBat(sc, eStab);
+  var batt={on:battOn, capex:battCapex, annualSave:billNB.min-billWith.min, nomSave:nomSave, npvSave:npvSave,
+            netNpv:npvSave-battCapex, payback:battPayback, billWith:billWith, billNB:billNB, eStab:eStab};
+
+  return {
+    sc:sc, N:N, cap:cap, loan:loan, equity:equity, rows:rows,
+    tv:tv, landH:landH, balN:balN, residualU:residualU, residualL:residualL, recapture:recapture, txn:txn, sold:sold, accumDepr:accumDepr,
+    npvU:npv(r,uCF), npvL:npv(r,lCF), irrU:irr(uCF), irrL:irr(lCF),
+    coc:coc, minDSCR:minDSCR, avgDSCR:avgDSCR, moic:moic, spb:spb, dpb:dpb,
+    power:powerStructures(sc, rows[stYear-1].energy), stYear:stYear, batt:batt
+  };
+}
+
+/* -------------------- FORMATTERS -------------------- */
+function fUSD(x){if(x===null||x===undefined||isNaN(x))return "—";var n=Math.round(x);var s=Math.abs(n).toLocaleString("en-US");return (n<0?"−$":"$")+s;}
+function fK(x){if(x===null||isNaN(x))return "—";var s=x<0?"−$":"$",a=Math.abs(x),k=Math.round(a/1000);
+  if(k>=1000){var m=a/1e6,str=(m>=10?m.toFixed(1):m.toFixed(2)).replace(/\.?0+$/,"");return s+str+"M";}
+  return s+k.toLocaleString()+"k";}
+function fPct(x,d){if(x===null||x===undefined||isNaN(x))return "—";return (x*100).toFixed(d===undefined?1:d)+"%";}
+function fX(x,d){if(x===null||isNaN(x))return "—";return x.toFixed(d===undefined?2:d)+"×";}
+function fNum(x){if(x===null||isNaN(x))return "—";return Math.round(x).toLocaleString();}
+/* ---- provenance-driven input state: HAVE (from an upload) · NEED (critical & blank) · blank ---- */
+var SRC={};   // key -> true if the current value came from an uploaded document / tariff schedule
+// critical inputs: a real site can't be modeled without these (0 == not-yet-provided for all of them)
+function isCritical(key){
+  if({ports:1,nameplate:1,ratedPort:1,sessPort:1,kwhSess:1,retailOn:1,retailOff:1,horizon:1,cod:1,discount:1}[key]) return true;
+  if(key==="allInPerPost") return M.capexMode.v!=="detailed";   // simple CAPEX mode
+  if(key==="equipPerPost") return M.capexMode.v==="detailed";   // itemized CAPEX mode
+  return false;
+}
+function fieldState(key){   // "" | "have" | "need"
+  var f=M[key]; if(!f) return "";
+  var val=(f.c!==undefined)?f.b:f.v;
+  if(typeof val==="string") return "";                 // selects carry no tag
+  var has=(typeof val==="number") && val>0;
+  if(SRC[key] && has) return "have";                   // HAVE only ever comes from an upload
+  if(isCritical(key) && !has) return "need";           // critical & blank -> NEED (red)
+  return "";                                            // filled manually, or non-critical & blank -> no tag
+}
+function chipSlot(key){ return ' <span class="schip-slot" data-chip="'+key+'"></span>'; }
+// the model only computes once EVERY critical input is filled (no partial/misleading results)
+function allCriticalFilled(){ for(var k in M){ if(fieldState(k)==="need") return false; } return true; }
+function gateMsg(){ return '<p class="note" style="margin:0;color:var(--mut)">Complete the <b style="color:#c0392b">critical inputs</b> — every field outlined red on the <b>Inputs</b> tab — and the results appear. Or upload a site flyer / rate sheet on the <b>Import / Export</b> tab to auto-fill.</p>'; }
+function refreshFieldStates(){   // live update of chips + red outlines without rebuilding the form (keeps focus)
+  document.querySelectorAll(".schip-slot").forEach(function(slot){
+    var st=fieldState(slot.getAttribute("data-chip"));
+    slot.innerHTML = st==="have" ? ' <span class="schip chip-have" title="Populated from an uploaded document / tariff schedule">HAVE</span>'
+                   : st==="need" ? ' <span class="schip chip-need" title="Required to model this site — enter a value or upload a document">NEED</span>'
+                   : "";
+  });
+  document.querySelectorAll("input[data-k]").forEach(function(el){
+    el.classList.toggle("need-blank", fieldState(el.getAttribute("data-k"))==="need");
+  });
+}
+
+/* -------------------- RENDER: DASHBOARD -------------------- */
+// headline content for ANY scenario — used by renderHero (screen, current SC) and the PDF export (all three)
+function heroContent(sc){
+  var R=compute(sc), cod=M.cod.v, N=R.N;
+  var cls=function(v){return v>0?"pos":v<0?"neg":"neu";};
+  // detect state from actual site data, NOT from IRR (IRR is null both for an empty model AND for a real
+  // but no-invested-capital / deeply-loss-making site — those must not blank out the whole headline).
+  var complete = allCriticalFilled();                  // the model won't compute until EVERY critical input is filled
+  var hasSite = R.cap.total>0 || R.rows.some(function(r){return r.energy>0 || r.revenue>0;});
+  var negCapital = complete && hasSite && R.cap.total<0;   // grants/incentives exceed entered CAPEX (usually a double-count)
+  var noCapital  = complete && hasSite && R.cap.total===0; // operations entered but no CAPEX yet
+  var dashAll = !complete || !hasSite || R.cap.total<=0;   // returns need positive invested capital AND all critical inputs
+  var noi1 = R.rows[R.stYear-1].noi;
+  var verdict;
+  if(!complete){
+    verdict='Complete the <b>critical inputs</b> — every field outlined <b style="color:#ff9d9d">red</b> on the <b>Inputs</b> tab — and the model computes. Or upload a site flyer / utility rate sheet on the <b>Import / Export</b> tab to auto-fill.';
+  } else if(!hasSite){
+    verdict='Upload a site flyer or utility tariff schedule on the <b>Import / Export</b> tab to auto-fill this model — or enter a site by hand on the <b>Inputs</b> tab, where every critical field is outlined red until filled.';
+  } else if(negCapital){
+    verdict='<b>Grants exceed CAPEX — net invested capital is negative.</b> Entered CAPEX is '+fUSD(R.cap.exLand+R.cap.land)+', but incentives/grants total '+fUSD(R.cap.rebate)+' (Module 8). This is almost always a <b>double-counted grant</b>: if your CAPEX is an <b>out-of-pocket</b> figure (already net of the grant), set the grant to <b>0</b> in Module 8; otherwise enter the <b>gross</b> project cost so the grant nets against it.';
+  } else if(noCapital){
+    verdict='<b>Site entered — but no invested capital yet.</b> Stabilized NOI is '+fUSD(noi1)+'/yr. Enter <b>CAPEX per post</b> (Module 1–2) and any <b>land</b> basis on the Inputs tab so the model can compute IRR, NPV, payback and MOIC.';
+  } else if(R.irrL==null){
+    verdict='<b>'+SCEN[sc]+' case:</b> this configuration does not earn a positive return over the '+N+'-year hold — levered NPV is '+fK(R.npvL)+' at a '+fPct(g("discount",sc),0)+' discount rate (IRR is undefined because the cash flows never turn positive). Check retail price, CAPEX and tariff.';
+  } else {
+    var be=R.spb?('year '+R.spb+' ('+(cod+R.spb-1)+')'):('beyond the '+N+'-year hold');
+    verdict='<b>'+SCEN[sc]+' case:</b> a '+fPct(R.irrL)+' levered after-tax IRR over a '+N+'-year hold, breaking even in '+be+', on '+fK(R.equity)+' of equity against '+fK(R.cap.total)+' of all-in capital. Levered NPV of '+fK(R.npvL)+' at a '+fPct(g("discount",sc),0)+' discount rate.';
+  }
+  var stats=[
+    {nm:"Levered IRR", big:(dashAll||R.irrL==null)?"—":fPct(R.irrL), sec:"after-tax", cl:(dashAll||R.irrL==null)?"neu":cls(R.irrL)},
+    {nm:"NPV · levered", big:dashAll?"—":fK(R.npvL), sec:"@ "+fPct(g("discount",sc),0)+" disc.", cl:dashAll?"neu":cls(R.npvL)},
+    {nm:"Equity MOIC", big:(dashAll||R.moic==null)?"—":fX(R.moic), sec:"dist ÷ equity", cl:(dashAll||R.moic==null)?"neu":cls(R.moic-1)},
+    {nm:"Break-even", big:(dashAll||!R.spb)?"—":String(cod+R.spb-1), sec:dashAll?"—":(R.spb?("year "+R.spb+" of "+N):"beyond hold"), cl:(!dashAll&&R.spb)?"pos":"neu"},
+    {nm:"Min DSCR", big:(dashAll||R.minDSCR==null)?"—":fX(R.minDSCR), sec:dashAll?"—":"over debt life", cl:(dashAll||R.minDSCR==null)?"neu":(R.minDSCR>=1.25?"pos":R.minDSCR>=1?"neu":"neg")}
+  ];
+  var statsHTML=stats.map(function(c){
+    return '<div class="hstat '+c.cl+'"><div class="hnm">'+c.nm+'</div><div class="hbig">'+c.big+'</div><div class="hsec">'+c.sec+'</div></div>';
+  }).join("");
+  return {verdict:verdict, statsHTML:statsHTML};
+}
+function renderHero(){
+  var lbl=document.getElementById("utilScLbl"); if(lbl) lbl.textContent=SCEN[SC];
+  var h=heroContent(SC);
+  document.getElementById("heroVerdict").innerHTML=h.verdict;
+  document.getElementById("heroStats").innerHTML=h.statsHTML;
+}
+// a full hero band for one scenario (used in the PDF export, which shows all three)
+function heroBlockHTML(sc){
+  var h=heroContent(sc);
+  return '<div class="hero" style="box-shadow:none;margin-bottom:14px;break-inside:avoid">'+
+    '<div class="hero-top"><div class="hero-kicker">'+SCEN[sc]+' scenario · buy-and-operate returns</div></div>'+
+    '<div class="hero-verdict">'+h.verdict+'</div>'+
+    '<div class="hero-stats">'+h.statsHTML+'</div></div>';
+}
+
+/* -------------------- RENDER: COMPARISON -------------------- */
+function renderCompare(){
+  if(!allCriticalFilled()){ document.getElementById("cmpTbl").innerHTML='<tbody><tr><td style="padding:14px">'+gateMsg()+'</td></tr></tbody>'; return; }
+  var Rs={c:compute("c"),b:compute("b"),o:compute("o")};
+  var metrics=[
+    ["Levered IRR (after-tax)", function(R){return fPct(R.irrL);}],
+    ["Unlevered IRR (after-tax)", function(R){return fPct(R.irrU);}],
+    ["NPV — levered", function(R){return fK(R.npvL);}],
+    ["NPV — unlevered", function(R){return fK(R.npvU);}],
+    ["Stabilized cash-on-cash", function(R){return fPct(R.coc);}],
+    ["Equity MOIC", function(R){return fX(R.moic);}],
+    ["Min / avg DSCR", function(R){return fX(R.minDSCR)+" / "+fX(R.avgDSCR);}],
+    ["Simple / disc. payback", function(R){return (R.spb?R.spb:">"+R.N)+" / "+(R.dpb?R.dpb:">"+R.N)+" yr";}],
+    ["Total CAPEX", function(R){return fK(R.cap.total);}],
+    ["Equity invested", function(R){return fK(R.equity);}],
+    ["Yr-1 stabilized NOI", function(R){return fK(R.rows[R.stYear-1].noi);}],
+    ["Terminal value", function(R){return fK(R.tv);}],
+    ["Residual equity @ horizon", function(R){return fK(R.residualL);}]
+  ];
+  var h='<thead><tr><th>Metric</th><th>Conservative</th><th>Base</th><th>Optimistic</th></tr></thead><tbody>';
+  metrics.forEach(function(m){
+    h+='<tr><td>'+m[0]+'</td><td>'+m[1](Rs.c)+'</td><td><b>'+m[1](Rs.b)+'</b></td><td>'+m[1](Rs.o)+'</td></tr>';
+  });
+  h+='</tbody>';
+  document.getElementById("cmpTbl").innerHTML=h;
+}
+
+
+/* -------------------- RENDER: SENSITIVITY -------------------- */
+function renderSensitivity(){
+  if(!allCriticalFilled()){ document.getElementById("sensTbl").innerHTML='<tbody><tr><td style="padding:14px">'+gateMsg()+'</td></tr></tbody>'; return; }
+  var eMults=[0.80,0.90,1.00,1.10,1.20];
+  var pMults=[0.85,0.925,1.00,1.075,1.15];
+  var vals=[]; var flat=[];
+  eMults.forEach(function(em){var r=[];pMults.forEach(function(pm){
+    var R=compute(SC,{energyMult:em,retailMult:pm});var v=R.irrL;r.push(v);if(v!==null)flat.push(v);});vals.push(r);});
+  var lo=Math.min.apply(null,flat), hi=Math.max.apply(null,flat);
+  function color(v){if(v===null)return "#999";var t=(hi>lo)?(v-lo)/(hi-lo):0.5;
+    // red(0)→amber(.5)→green(1)
+    var r=t<0.5?178:Math.round(178-(178-47)*(t-0.5)*2);
+    var g2=t<0.5?Math.round(58+(125-58)*t*2):125;
+    var b=t<0.5?58:Math.round(58+(82-58)*(t-0.5)*2);
+    return "rgb("+r+","+g2+","+b+")";}
+  var h='<thead><tr><th>Energy ↓ / Price →</th>';
+  pMults.forEach(function(pm){h+='<th>'+Math.round(pm*100)+'%</th>';});
+  h+='</tr></thead><tbody>';
+  eMults.forEach(function(em,i){h+='<tr><th>'+Math.round(em*100)+'%</th>';
+    pMults.forEach(function(pm,j){var v=vals[i][j];h+='<td style="background:'+color(v)+'">'+fPct(v)+'</td>';});
+    h+='</tr>';});
+  h+='</tbody>';
+  document.getElementById("sensTbl").innerHTML=h;
+}
+
+/* -------------------- RENDER: SCALING STRESS TEST -------------------- */
+function renderScaleStress(){
+  if(!allCriticalFilled()){ document.getElementById("scaleTbl").innerHTML='<tbody><tr><td style="padding:14px">'+gateMsg()+'</td></tr></tbody>'; return; }
+  var cod=M.cod.v;
+  var levels=[0,0.5,1.0,1.5,2.0];
+  var live=g("scaleIntensity",SC);
+  var Rs=levels.map(function(x){return compute(SC,{scaleIntensity:x});});
+  function beYr(R){return R.spb?String(cod+R.spb-1):">"+(cod+R.N-1);}
+  var metrics=[
+    ["Scaling intensity", function(R,i){return Math.round(levels[i]*100)+"%";}],
+    ["Levered IRR", function(R){return fPct(R.irrL);}],
+    ["Levered NPV", function(R){return fK(R.npvL);}],
+    ["Equity MOIC", function(R){return fX(R.moic);}],
+    ["Break-even year", function(R){return beYr(R);}],
+    ["Yr-15 energy (kWh)", function(R){return fNum(R.rows[R.N-1].energy);}],
+    ["Yr-15 retail ($/kWh)", function(R){var y=R.rows[R.N-1];return "$"+(y.energy>0?(y.gross/y.energy):0).toFixed(3);}],
+    ["Yr-15 NOI", function(R){return fK(R.rows[R.N-1].noi);}]
+  ];
+  var h='<thead><tr><th>Metric</th>';
+  levels.forEach(function(x){var on=Math.abs(x-live)<1e-9; h+='<th'+(on?' style="background:var(--chip);color:var(--navy)"':'')+'>'+Math.round(x*100)+'%'+(on?' ·live':'')+'</th>';});
+  h+='</tr></thead><tbody>';
+  metrics.slice(1).forEach(function(m){
+    h+='<tr><td>'+m[0]+'</td>';
+    Rs.forEach(function(R,i){var on=Math.abs(levels[i]-live)<1e-9; h+='<td'+(on?' style="background:var(--chip);font-weight:700"':'')+'>'+m[1](R,i)+'</td>';});
+    h+='</tr>';
+  });
+  h+='</tbody>';
+  document.getElementById("scaleTbl").innerHTML=h;
+}
+
+/* -------------------- RENDER: TERMINAL BRIDGE + POWER -------------------- */
+function renderTerminal(){
+  if(!allCriticalFilled()){ document.getElementById("termBridge").innerHTML=gateMsg(); document.getElementById("powerSel").innerHTML=gateMsg(); return; }
+  var R=compute(SC);
+  var noiN=R.rows[R.N-1].noi;
+  var method=g("termMethod",SC);
+  var mlabel=method==="gordon"?"Gordon growth":method==="ebitda"?"EBITDA × multiple":"cap rate";
+  var basis=method==="ebitda"?("NOI "+fK(noiN)+" × "+fX(g("ebitdaMult",SC),1)):
+            method==="gordon"?("NOI "+fK(noiN)+" × (1+g) ÷ (r−g)"):
+            ("NOI "+fK(noiN)+" ÷ "+fPct(g("capRate",SC),1)+" cap");
+  var h='<div class="kv"><span class="k">Stabilized NOI at Yr '+R.N+'</span><span class="v">'+fUSD(noiN)+'</span></div>';
+  h+='<div class="kv"><span class="k">Capitalized value ('+mlabel+')</span><span class="v">'+fUSD(R.tv)+'</span></div>';
+  h+='<div class="kv"><span class="k">'+basis+'</span><span class="v small"></span></div>';
+  h+='<div class="kv"><span class="k">+ Land value at horizon</span><span class="v">'+fUSD(R.landH)+'</span></div>';
+  h+='<div class="kv"><span class="k">− Debt balance at horizon</span><span class="v">'+fUSD(-R.balN)+'</span></div>';
+  if(R.sold){
+    h+='<div class="kv"><span class="k">− Transaction costs</span><span class="v">'+fUSD(-R.txn)+'</span></div>';
+    h+='<div class="kv"><span class="k">− §1245 recapture tax</span><span class="v">'+fUSD(-R.recapture)+'</span></div>';
+  }
+  h+='<div class="kv" style="border-top:2px solid var(--navy2);margin-top:4px;padding-top:8px"><span class="k"><b>Residual equity at horizon</b></span><span class="v" style="font-size:16px;color:var(--navy)">'+fUSD(R.residualL)+'</span></div>';
+  document.getElementById("termBridge").innerHTML=h;
+
+  var pw=R.power;
+  var energy=R.rows[R.stYear-1].energy;
+  function row(label,val){return '<div class="kv"><span class="k">'+label+'</span><span class="v">'+fUSD(val)+'/yr</span></div>';}
+  var p =row("Customer / basic charge",pw.customer);
+  p+=row("Energy charge (full annual kWh)",pw.energyC);
+  p+=row("Demand charge (billed kW × $/kW × 12)",pw.demandC);
+  p+='<div class="kv" style="border-top:1px solid var(--line);padding-top:6px"><span class="k">Commercial subtotal</span><span class="v">'+fUSD(pw.base)+'/yr</span></div>';
+  if(pw.premOn){
+    p+=row("+ Premium — % uplift on bill",pw.premPct);
+    p+=row("+ Premium — energy adder",pw.premKwh);
+  }
+  p+='<div class="kv" style="border-top:2px solid var(--navy2);padding-top:8px"><span class="k"><b>'+pw.which+' — total power cost</b></span><span class="v" style="color:var(--navy)">'+fUSD(pw.min)+'/yr</span></div>';
+  p+='<div class="kv"><span class="k">≈ effective $/kWh @ stabilized</span><span class="v">$'+(energy>0?(pw.min/energy):0).toFixed(3)+'</span></div>';
+  p+='<div class="kv"><span class="k">Billed demand (grid, after battery)</span><span class="v">'+fNum(pw.billed)+' kW</span></div>';
+  document.getElementById("powerSel").innerHTML=p;
+}
+
+// Battery vs. no-battery power-cost comparison + battery payback/NPV
+function renderBatteryCompare(){
+  var host=document.getElementById("battCompare"); if(!host) return;
+  if(!allCriticalFilled()){ host.innerHTML=gateMsg(); return; }
+  var R=compute(SC), b=R.batt;
+  var nbSet=(g("nbCustomer",SC)+g("nbEnergyOn",SC)+g("nbEnergyOff",SC)+g("nbDemand",SC))>0;
+  if(!b.on || !nbSet){
+    host.innerHTML='<div class="note" style="line-height:1.6">Turn on <b>“Compare battery vs. no-battery power cost?”</b> in Module 5 and enter the <b>no-battery tariff</b> (e.g. PSE Schedule 26) to see the comparison. The with-battery tariff is your existing Module 5 rate (e.g. Schedule 25), billed on the expected billed demand.</div>'+
+      '<div style="margin-top:10px"><button class="xbtn" onclick="prefillPSE()">Prefill PSE Schedule 25 / 26 example rates</button></div>'+
+      '<p class="small" style="margin-top:8px">Loads planning-grade PSE numbers — Sched 25 (with battery, ≤350 kW) into Module 5, Sched 26 (no battery, &gt;350 kW) into the no-battery tariff — and enables the comparison. Verify against the current tariff before relying on them.</p>';
+    return;
+  }
+  var w=b.billWith, nb=b.billNB, e=b.eStab;
+  function effkwh(bill){ return e>0?(bill.min/e):0; }
+  var flip = effkwh(w) > effkwh(nb)+1e-6;
+  function tr(label,nbv,wv,cls){ var d=nbv-wv; return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+label+'</td><td>'+fUSD(nbv)+'</td><td>'+fUSD(wv)+'</td><td'+(d<0?' class="neg"':'')+'>'+fUSD(d)+'</td></tr>'; }
+  var h='<div class="tblwrap"><table><thead><tr><th>Power bill (stabilized $/yr)</th><th>No battery</th><th>With battery</th><th>Δ (savings)</th></tr></thead><tbody>';
+  h+=tr("Customer / basic charge",nb.customer,w.customer);
+  h+=tr("Energy charge",nb.energyC,w.energyC);
+  h+=tr("Demand charge",nb.demandC,w.demandC);
+  h+=tr("Total power cost",nb.min,w.min,"tot");
+  h+='<tr class="sub"><td>Billed demand (kW)</td><td>'+fNum(nb.billed)+'</td><td>'+fNum(w.billed)+'</td><td>'+fNum(w.billed-nb.billed)+'</td></tr>';
+  h+='<tr class="sub"><td>Effective $/kWh</td><td>$'+effkwh(nb).toFixed(3)+'</td><td>$'+effkwh(w).toFixed(3)+'</td><td></td></tr>';
+  h+='</tbody></table></div>';
+  var pay=b.payback!=null?("Yr "+b.payback):(b.capex>0?(">"+R.N+" yrs"):"n/a");
+  h+='<div class="grid cols2" style="margin-top:14px">'+
+     '<div class="bridge">'+
+       '<div class="kv"><span class="k">Annual power savings (stabilized)</span><span class="v">'+fUSD(b.annualSave)+'/yr</span></div>'+
+       '<div class="kv"><span class="k">Nominal savings over '+R.N+' yrs</span><span class="v">'+fUSD(b.nomSave)+'</span></div>'+
+       '<div class="kv"><span class="k">NPV of savings @ '+fPct(g("discount",SC),0)+'</span><span class="v">'+fUSD(b.npvSave)+'</span></div>'+
+     '</div>'+
+     '<div class="bridge">'+
+       '<div class="kv"><span class="k">− Battery CAPEX (Module 1–2)</span><span class="v">'+fUSD(-b.capex)+'</span></div>'+
+       '<div class="kv"><span class="k">Simple payback</span><span class="v">'+pay+'</span></div>'+
+       '<div class="kv" style="border-top:2px solid var(--navy2);padding-top:8px"><span class="k"><b>Net value of the battery (NPV)</b></span><span class="v" style="font-size:16px;color:'+(b.netNpv>=0?'var(--good)':'var(--bad)')+'">'+fUSD(b.netNpv)+'</span></div>'+
+     '</div></div>';
+  var verdict = b.capex<=0
+    ? 'No battery CAPEX entered (Module 1–2) — showing the raw power-cost delta only. Add the battery CAPEX for a payback &amp; net NPV.'
+    : (b.netNpv>=0
+        ? 'The '+fUSD(b.capex)+' battery saves '+fUSD(b.annualSave)+'/yr, pays back in '+pay+', and is <b>NPV-positive by '+fUSD(b.netNpv)+'</b> on power cost alone — worth it.'
+        : 'The '+fUSD(b.capex)+' battery saves '+fUSD(b.annualSave)+'/yr but is <b>NPV-negative by '+fUSD(-b.netNpv)+'</b> on power cost alone — the demand savings don’t cover the CAPEX at this discount rate.');
+  h+='<p class="note" style="margin-top:12px;line-height:1.6">'+verdict+'</p>';
+  if(flip) h+='<p class="small" style="margin-top:6px;color:var(--warn)"><b>Schedule-flip note:</b> the with-battery effective rate ($'+effkwh(w).toFixed(3)+'/kWh) is <b>higher</b> than the no-battery rate ($'+effkwh(nb).toFixed(3)+'/kWh) — the battery drops you to a schedule with a lower demand charge but a higher energy charge, so part of the demand savings is handed back on energy. That trade-off is already netted into the figures above.</p>';
+  host.innerHTML=h;
+}
+// Prefill planning-grade PSE rates: Sched 25 (with battery) into Module 5, Sched 26 (no battery) into the nb tariff.
+// Demand = annual average of the seasonal Oct–Mar / Apr–Sep charges. Verify against the live tariff before use.
+function prefillPSE(){
+  M.tCustomer.v=91.18; M.tEnergyOn.v=0.111; M.tEnergyOff.v=0.111; M.tDemand.v=14.26;   // Schedule 25 (≤350 kW)
+  M.nbCustomer.v=436.32; M.nbEnergyOn.v=0.076; M.nbEnergyOff.v=0.076; M.nbDemand.v=18.03; // Schedule 26 (>350 kW)
+  M.batteryCompare.v="yes";
+  buildInputs(); renderAll();
+}
+
+/* -------------------- UTILIZATION CALCULATOR — factors in, utilization out -------------------- */
+function uField(key,label,unit,scen){   // scen: true = current scenario col · "b"/"c"/"o" = fixed col · false = single
+  var f=M[key];
+  var u=unit?' <span class="unit">('+unit+')</span>':'';
+  var c = (scen===true) ? SC : (typeof scen==="string" ? scen : null);
+  var col = c ? ' data-col="'+c+'"' : '';
+  var val = c ? f[c] : f.v;
+  return '<div class="field"><label>'+label+u+chipSlot(key)+'</label><input type="number" step="any" data-k="'+key+'"'+col+' value="'+val+'"></div>';
+}
+function buildUtilInputs(){
+  var drivers=document.getElementById("utilDrivers");
+  if(drivers){
+    drivers.innerHTML='<div class="grid cols3" style="gap:12px">'+
+        uField("nameplate","Installed nameplate power","kW",false)+
+        uField("ports","Number of posts / stalls","#",false)+
+        uField("ratedPort","Rated power per port","kW",false)+
+        uField("sessPort","Sessions per port / day — Base (cons −1, opt +1)","#","b")+
+        uField("kwhSess","Avg kWh per session","kWh",false)+
+      '</div>'+
+      '<div id="utilDriverOut" class="bridge" style="margin-top:12px"></div>'+
+      '<div class="small" style="margin-top:8px;line-height:1.5">Stabilized throughput = <b>sessions/day × kWh/session × posts × 365</b>; day-avg <b>utilization</b> = that ÷ (nameplate × 8,760) — an <i>output</i>, shown above, never typed in. These five factors, plus the modules below, drive the whole model. Occupancy-only detail (duration, idle, effective kW) and the full derivation live on the <b>Analysis</b> tab.</div>';
+  }
+  var diag=document.getElementById("utilDiag");
+  if(diag){
+    diag.innerHTML='<div class="grid cols4" style="gap:12px">'+
+        uField("availHours","Available hours / day","hrs",false)+
+        uField("durMin","Avg session duration","min",false)+
+        uField("idle","Idle share","%",false)+
+        uField("effkw","Effective delivered kW / port","kW",false)+
+      '</div>'+
+      '<div class="small" style="margin-top:6px">On-peak energy share is set in Module 3; the expected billed demand (after battery) in Module 5. Both feed the readouts below.</div>'+
+      '<div id="utilDemand" style="margin-top:10px"></div>';
+  }
+}
+function renderUtilResults(){
+  var sc=SC;
+  var ports=g("ports",sc), rated=g("ratedPort",sc), nameplate=g("nameplate",sc), H=g("availHours",sc);
+  var S=g("sessPort",sc), durH=g("durMin",sc)/60, idle=g("idle",sc), E=g("kwhSess",sc);
+  var plugged=S*durH, active=plugged*(1-idle);
+  var occ=H>0?plugged/H:0, act=H>0?active/H:0;
+  var dailyKWh=S*E, lf=(rated*H>0)?dailyKWh/(rated*H):0;
+  var pAvg=active>0?dailyKWh/active:0, acc=rated>0?pAvg/rated:0;
+  var annual=dailyKWh*ports*365;                              // stabilized annual energy (site) → feeds ROI
+  var utilBasis=(nameplate>0)?annual/(nameplate*8760):0;      // day-avg utilization (energy basis) — THE output
+  var wrong=occ*rated*H, trap=dailyKWh>0?wrong/dailyKWh:0;
+  function st(nm,big,sec,barc){return '<div class="stat"><div class="bar" style="background:'+barc+'"></div><div class="nm">'+nm+'</div><div class="big">'+big+'</div><div class="sec">'+sec+'</div></div>';}
+
+  // headline OUTPUT — the utilization derived from the factors
+  var h='<div class="bridge" style="margin:0 0 14px"><div style="font-size:13px;color:var(--navy);font-weight:700">Stabilized day-avg utilization (energy basis): <span style="font-size:19px">'+fPct(utilBasis)+'</span> &nbsp;→&nbsp; <b>'+fNum(annual)+' kWh/yr</b> feeds the ROI model ('+SCEN[sc]+', before ramp &amp; growth).</div>'+
+    '<div class="small" style="margin-top:4px">= '+S.toFixed(1)+' sessions/port/day × '+fNum(E)+' kWh × '+ports+' ports × 365, ÷ ('+fNum(nameplate)+' kW × 8,760 h). It’s an output of the factors — no stabilized number is typed in.</div></div>';
+
+  h+='<div class="grid cols3" style="margin-bottom:12px">'+
+    st("1 · Occupancy",fPct(occ),plugged.toFixed(2)+" plugged hrs/port/day","#6b46c1")+
+    st("2 · Active-charging",fPct(act),active.toFixed(2)+" charging hrs/day","#2c7a7b")+
+    st("3 · Energy load factor",fPct(lf),fNum(dailyKWh)+" kWh/port/day","#2f7d52")+
+  '</div>';
+  h+='<div class="bridge" style="margin-bottom:12px"><div style="text-align:center;font-size:15px;color:var(--navy)">energy load factor = <b>'+fPct(act)+'</b> (active fraction) × <b>'+fPct(acc)+'</b> (charge acceptance) = <b>'+fPct(act*acc)+'</b></div>'+
+    (acc>1.0001?'<div style="text-align:center;font-size:12px;color:var(--bad);margin-top:5px">acceptance &gt; 100% is physically impossible — check duration, idle, or kWh/session</div>':'')+'</div>';
+
+  // OUTPUT by scenario — the derived utilization/energy for all three
+  h+='<div class="tblwrap"><table><thead><tr><th>Output by scenario</th><th>Conservative</th><th>Base</th><th>Optimistic</th></tr></thead><tbody>';
+  function scenAnnual(s){return g("ports",s)*g("sessPort",s)*g("kwhSess",s)*365;}
+  function rowScen(label,fn){var r='<tr><td>'+label+'</td>';["c","b","o"].forEach(function(s){r+='<td>'+fn(s)+'</td>';});return r+'</tr>';}
+  h+=rowScen("Sessions / port / day (cons −1 · base · opt +1)",function(s){return g("sessPort",s).toFixed(1);});
+  h+=rowScen("→ Stabilized utilization (energy basis)",function(s){var a=scenAnnual(s),np=g("nameplate",s);return fPct(np>0?a/(np*8760):0);});
+  h+=rowScen("→ Stabilized annual energy (kWh)",function(s){return fNum(scenAnnual(s));});
+  h+='</tbody></table></div>';
+
+  h+='<div style="margin-top:12px"><div class="kv"><span class="k">The "trap": occupancy × nameplate would overstate energy by</span><span class="v">'+trap.toFixed(2)+'×</span></div>'+
+     '<div class="kv"><span class="k">Sessions / day site-wide ('+ports+' ports)</span><span class="v">'+fNum(S*ports)+'</span></div></div>';
+  document.getElementById("utilResults").innerHTML=h;
+
+  // compact echo on the Inputs tab (drivers card)
+  var drv=document.getElementById("utilDriverOut");
+  if(drv){
+    drv.innerHTML='<div style="font-size:13px;color:var(--navy);font-weight:700">Stabilized day-avg utilization: <span style="font-size:19px">'+fPct(utilBasis)+'</span> &nbsp;→&nbsp; <b>'+fNum(annual)+' kWh/yr</b> feeds the model ('+SCEN[sc]+', before ramp &amp; growth).</div>'+
+      '<div class="small" style="margin-top:3px">= '+S.toFixed(1)+' sessions/post/day × '+fNum(E)+' kWh × '+ports+' posts × 365 ÷ ('+fNum(nameplate)+' kW × 8,760 h).</div>';
+  }
+
+  // demand rail readout (lives in the diagnostics card) — shows the on-site-battery haircut on billed demand
+  var dm=document.getElementById("utilDemand");
+  if(dm){
+    var billed=g("billedDemand",sc), preBat=g("preBatteryDemand",sc);
+    dm.innerHTML='<div class="kv"><span class="k">Installed nameplate (hard capacity)</span><span class="v">'+fNum(nameplate)+' kW</span></div>'+
+      '<div class="kv"><span class="k">Pre-battery peak demand (grid, no battery)</span><span class="v">'+fNum(preBat)+' kW</span></div>'+
+      '<div class="kv" style="border-top:1px solid var(--line);padding-top:6px"><span class="k"><b>Expected billed demand — grid, after battery</b></span><span class="v" style="color:var(--navy)"><b>'+fNum(billed)+' kW</b></span></div>'+
+      (preBat>0 && billed>0 && preBat>billed ? '<div class="kv"><span class="k">Battery haircut (demand only)</span><span class="v">'+fNum(preBat-billed)+' kW ('+fPct((preBat-billed)/preBat)+')</span></div>' : '')+
+      '<div class="small" style="margin-top:6px">The battery is treated as <b>demand-only</b> (grid-charged): the <b>demand charge</b> is billed on the reduced <b>billed demand</b>, while the <b>energy charge stays on the full annual kWh</b> — the battery shifts load, it doesn’t displace grid energy. Set the pre-battery peak to the draw you’d have <b>without</b> the battery (it drives the no-battery comparison), and the billed demand to the peak <b>after</b> it.</div>';
+  }
+}
+
+/* -------------------- BUILD INPUT FORM -------------------- */
+// per-field spinner-arrow increment (default "any" = whole steps of 1)
+var STEP={opexInfl:0.01, excise:0.01, powerEsc:0.01,
+          priceEsc:0.1, feeKwh:0.1, retailOn:0.1, retailOff:0.1, retailCap:0.1,
+          tEnergyOn:0.001, tEnergyOff:0.001, tDemand:0.01, premiumKwh:0.001, premiumPct:0.1, procFeePct:0.1,
+          nbEnergyOn:0.001, nbEnergyOff:0.001, nbDemand:0.01, nbCustomer:1};
+function fieldHTML(key,label,unit){
+  var f=M[key]; var tag=chipSlot(key);
+  var step=STEP[key]||"any";
+  var u=unit?' <span class="unit">('+unit+')</span>':'';
+  if(f.v!==undefined && (key==="termMethod"||key==="sold"||key==="premiumOn"||key==="capexMode"||key==="cfsContinue"||key==="batteryCompare")){
+    var opts = key==="termMethod"
+      ? [["cap","Cap rate on stabilized NOI"],["gordon","Gordon growth"],["ebitda","EV/EBITDA multiple"]]
+      : key==="premiumOn"
+      ? [["no","No premium — commercial rate only"],["yes","Yes — add a premium"]]
+      : key==="capexMode"
+      ? [["simple","No — just the $/post above"],["detailed","Yes — show itemized line items"]]
+      : key==="cfsContinue"
+      ? [["no","No — credit expires after the guaranteed years"],["yes","Yes — keep the credit running"]]
+      : key==="batteryCompare"
+      ? [["no","No — single tariff only"],["yes","Yes — show battery vs no-battery"]]
+      : [["no","Hold (no sale)"],["yes","Sale scenario"]];
+    var o=opts.map(function(x){return '<option value="'+x[0]+'"'+(f.v===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join("");
+    return '<div class="field"><label>'+label+u+tag+'</label><select data-k="'+key+'">'+o+'</select></div>';
+  }
+  if(f.c!==undefined){
+    var mk=function(col){return '<input type="number" step="'+step+'" data-k="'+key+'" data-col="'+col+'" value="'+f[col]+'">';};
+    return '<div class="field"><label>'+label+u+tag+'</label><div class="three">'+
+      '<div><div class="mini">Cons</div>'+mk("c")+'</div>'+
+      '<div><div class="mini">Base</div>'+mk("b")+'</div>'+
+      '<div><div class="mini">Opt</div>'+mk("o")+'</div></div></div>';
+  }
+  return '<div class="field"><label>'+label+u+tag+'</label><input type="number" step="'+step+'" data-k="'+key+'" value="'+f.v+'"></div>';
+}
+
+var MODULES=[
+  ["Module 0 · Site &amp; scenario",[
+    ["cod","Commercial operation date (COD)","Yr 1"],
+    ["horizon","Analysis horizon / hold","yrs"],["discount","Discount / hurdle rate","%"],
+    ["opexInfl","Opex inflation","%/yr"],["taxRate","Corporate tax rate (shield)","%"],
+    ["excise","WA excise on revenue (B&O/PUT)","%"]]],
+  ["Module 1–2 · Hardware &amp; CAPEX build-up",[
+    ["allInPerPost","All-in CAPEX per post — ex-land (overrides the build-up if &gt; 0)","$/post"],
+    ["capexMode","Show itemized build-up?","—"],
+    ["equipPerPost","Equipment BOM per post","$/post","detailed"],["installPerCharger","Install / turnkey per charger","$","detailed"],
+    ["makeReady","Make-ready / trenching / electrical","$","detailed"],["interconnect","Utility interconnection (after gross-up)","$","detailed"],
+    ["siteCivil","Site civil (concrete, canopy, ADA)","$","detailed"],["permitting","Permitting &amp; engineering","$","detailed"],
+    ["softPct","Soft costs / contingency","% of hard","detailed"],["land","Land — parcel","$"],
+    ["hwLife","Hardware useful life","yrs"],["refreshCapex","Refresh CAPEX — every useful-life cycle","$"],
+    ["batteryCapex","On-site battery storage","$"]]],
+  ["Module 3 · Ramp, growth &amp; energy caps",[
+    ["rampY1","Year-1 ramp (% of stabilized)","%"],["rampYears","Years to stabilize","yrs"],
+    ["parcCAGR","Post-ramp EV-parc growth","%/yr"],["maxUtil","Physical ceiling (max day-avg util)","%"],
+    ["scaleIntensity","⚡ Scaling intensity (× retail/power/demand growth)","%"],["onPeakShare","On-peak energy share","%"]]],
+  ["Module 4 · Revenue",[
+    ["retailOn","Retail — on-peak","$/kWh"],["retailOff","Retail — off-peak","$/kWh"],
+    ["retailCap","Retail price ceiling (stabilizes here)","$/kWh"],
+    ["priceEsc","Price escalation","%/yr"],
+    ["cfsPerPort","WA Clean Fuel Standard credit — DC fast chargers only","$/port/yr"],
+    ["cfsYears","CFS guaranteed years","yrs"],["cfsContinue","Continue CFS after the guaranteed years?","—"],
+    ["ancillary","Ancillary revenue (flat)","$/yr"],
+    ["storeAttach","Retail attach rate (charging customers who shop)","%"],
+    ["storeMargin","Incremental retail EBIT / visit","$"]]],
+  ["Module 5 · Power cost (commercial utility tariff)",[
+    ["preBatteryDemand","Pre-battery peak demand — grid, no battery","kW"],["billedDemand","Expected billed demand — grid, after battery","kW"],["powerEsc","Power-cost escalation","%/yr"],
+    ["tCustomer","Customer / basic charge","$/mo"],["tEnergyOn","Energy — on-peak (flat: same as off)","$/kWh"],
+    ["tEnergyOff","Energy — off-peak","$/kWh"],["tDemand","Demand charge (seasonal: annual avg)","$/kW/mo"],
+    ["premiumOn","Add a premium on top of the commercial rate?","—"],
+    ["premiumKwh","Premium — energy adder","$/kWh","prem"],["premiumPct","Premium — uplift on power bill","%","prem"],
+    ["batteryCompare","Compare battery vs. no-battery power cost?","—"],
+    ["nbCustomer","No-battery tariff — customer charge","$/mo","batt"],["nbEnergyOn","No-battery tariff — energy on-peak","$/kWh","batt"],
+    ["nbEnergyOff","No-battery tariff — energy off-peak","$/kWh","batt"],["nbDemand","No-battery tariff — demand charge","$/kW/mo","batt"]]],
+  ["Module 6 · Operating expenses",[
+    ["feeKwh","Network / O&amp;M services fee","$/kWh"],["feeFloorMo","Services fee monthly floor","$/mo"],
+    ["feeEsc","Services fee escalator","%/yr"],["siteMaint","Site maintenance","$/yr"],
+    ["insurance","Insurance (property+liability)","$/yr"],["propTax","Property tax","$/yr"],
+    ["network","Network / data plan (flat)","$/yr"],["procFeePct","Payment processing fee","% of charging rev"],
+    ["reserve","Replacement reserve","$/yr"],
+    ["leasePerStallMo","Ground lease — per stall / month","$/stall/mo"],
+    ["groundLease","Ground lease — flat annual (used only if per-stall = 0)","$/yr"],
+    ["mgmt","Management / admin fee","$/yr"]]],
+  ["Module 7 · Financing",[
+    ["debtPct","Debt % of CAPEX","%"],["rate","Interest rate","%"],["term","Loan term / amortization","yrs"]]],
+  ["Module 8 · Incentives &amp; tax",[
+    ["fed30C","Federal 30C credit","$"],["makeReadyRebate","Utility make-ready rebate","$"],
+    ["neviGrant","NEVI / state grant","$"]]],
+  ["Module 9 · Terminal value",[
+    ["termMethod","Terminal method","—"],["capRate","Terminal cap rate","%"],
+    ["ebitdaMult","EV/EBITDA multiple","×"],["gordonG","Gordon growth rate","%"],
+    ["landAppr","Land appreciation","%/yr"],["sold","Disposition","—"],["txnPct","Transaction costs (if sold)","%"]]]
+];
+
+function buildInputs(){
+  var h="";
+  MODULES.forEach(function(mod){
+    h+='<div class="card" style="margin-bottom:14px"><h2>'+mod[0]+'</h2><div class="grid cols3">';
+    mod[1].forEach(function(fld){
+      var gate=fld[3];
+      if(gate){
+        if(gate==="simple"||gate==="detailed"){ if(gate!==M.capexMode.v) return; }        // CAPEX build-up gate
+        else if(gate==="prem"){ if(M.premiumOn.v!=="yes") return; }                          // premium fields gate
+        else if(gate==="batt"){ if(M.batteryCompare.v!=="yes") return; }                      // no-battery tariff gate
+      }
+      h+=fieldHTML(fld[0],fld[1],fld[2]);
+    });
+    h+='</div></div>';
+  });
+  document.getElementById("inputs").innerHTML=h;
+}
+
+// one delegated handler covers the input cards AND the utilization panel
+function onFieldChange(el){
+  var k=el.getAttribute("data-k"); if(!k||!M[k]) return;
+  var col=el.getAttribute("data-col");
+  var val = (el.tagName==="SELECT") ? el.value : parseFloat(el.value);
+  if(el.tagName!=="SELECT" && isNaN(val)) val=0;
+  if(col) M[k][col]=val; else M[k].v=val;
+  delete SRC[k];                        // a manual edit is no longer "from an upload" -> HAVE clears to blank
+  if(k==="capexMode"||k==="premiumOn"||k==="batteryCompare") buildInputs();   // re-render to show/hide mode-specific fields
+  renderAll();
+}
+document.addEventListener("input",function(e){var el=e.target; if(el.getAttribute&&el.getAttribute("data-k")) onFieldChange(el);});
+document.addEventListener("change",function(e){var el=e.target; if(el.tagName==="SELECT"&&el.getAttribute("data-k")) onFieldChange(el);});
+
+// push model values back into any field that isn't being actively edited (keeps the
+// two copies of a shared input — e.g. a value shown in a module and in the util panel — in sync)
+function syncInputs(){
+  var active=document.activeElement;
+  document.querySelectorAll("[data-k]").forEach(function(el){
+    if(el===active) return;
+    var f=M[el.getAttribute("data-k")]; if(!f) return;
+    var col=el.getAttribute("data-col");
+    var v = col ? f[col] : f.v;
+    if(el.tagName==="SELECT"){ if(el.value!==String(v)) el.value=v; }
+    else if(v!==undefined && el.value!=="" && parseFloat(el.value)!==v){ el.value=v; }
+  });
+}
+
+/* -------------------- EXPORT: mini P&L + KPIs (spreadsheet-ready) -------------------- */
+// Shared P&L row spec — one source of truth for the export matrix AND the on-screen table
+function buildPnlRows(sc){
+  var R=compute(sc), cod=M.cod.v, N=R.N, yrs=R.rows, rows=[];
+  function L(label,type,cls,y0,fn){var cells=[(y0===undefined?"":y0)]; yrs.forEach(function(y){cells.push(fn?fn(y):"");}); rows.push({label:label,type:type,cls:cls||"",cells:cells});}
+  L("Net energy throughput (kWh)","kwh","","",function(y){return Math.round(y.energy);});
+  L("Ramp / growth (% of stabilized)","pct","sub","",function(y){return y.rf;});
+  L("Retail price ($/kWh)","price","","",function(y){return y.energy>0?+(y.gross/y.energy).toFixed(4):0;});
+  L("Gross charging revenue","money","","",function(y){return Math.round(y.gross);});
+  L("CFS credit + ancillary","money","sub","",function(y){return Math.round(y.revenue-y.gross);});
+  L("TOTAL REVENUE","money","tot","",function(y){return Math.round(y.revenue);});
+  L("Less: power cost","money","sub","",function(y){return -Math.round(y.power);});
+  L("Less: network / O&amp;M services fee","money","sub","",function(y){return -Math.round(y.fee);});
+  L("Less: payment processing fee","money","sub","",function(y){return -Math.round(y.processing);});
+  L("Less: WA excise","money","sub","",function(y){return -Math.round(y.excise);});
+  L("Less: operating expenses","money","sub","",function(y){return -Math.round(y.opex);});
+  L("Plus: co-location retail EBIT","money","sub","",function(y){return Math.round(y.storeEBIT);});
+  L("EBITDA / NOI","money","tot","",function(y){return Math.round(y.noi);});
+  L("Less: depreciation","money","sub","",function(y){return -Math.round(y.depr);});
+  L("EBIT","money","tot","",function(y){return Math.round(y.noi-y.depr);});
+  L("Less: interest","money","sub","",function(y){return -Math.round(y.interest);});
+  L("Less: cash tax (levered)","money","sub","",function(y){return -Math.round(y.taxL);});
+  L("NET INCOME","money","tot","",function(y){return Math.round(y.noi-y.depr-y.interest-y.taxL);});
+  L("Less: refresh CAPEX","money","sub","",function(y){return -Math.round(y.maintCapex);});
+  L("Terminal / residual value","money","sub","",function(y){return y.t===N?Math.round(R.residualL):0;});
+  var uf=[]; yrs.forEach(function(y){uf.push(Math.round(y.uFCF+(y.t===N?R.residualU:0)));});
+  rows.push({label:"UNLEVERED FCF (incl. terminal)",type:"money",cls:"tot",cells:[-Math.round(R.cap.total)].concat(uf)});
+  var lf=[],cum=-R.equity,cr=[]; yrs.forEach(function(y){var v=y.lFCF+(y.t===N?R.residualL:0); lf.push(Math.round(v)); cum+=v; cr.push(Math.round(cum));});
+  rows.push({label:"LEVERED FCF (incl. terminal)",type:"money",cls:"tot",cells:[-Math.round(R.equity)].concat(lf)});
+  rows.push({label:"Cumulative levered FCF","type":"money",cls:"sub",cells:[Math.round(-R.equity)].concat(cr)});
+  L("memo: Debt service (P&I)","money","sub","",function(y){return Math.round(y.service);});
+  L("DSCR (NOI / debt service)","ratio","sub","",function(y){return y.dscr!==null?+y.dscr.toFixed(2):"";});
+  // whole-hold return metrics (single numbers derived from the FCF stream above — not per-year lines)
+  var be=R.spb?(cod+R.spb-1):(">"+(cod+R.N-1));
+  var summary=[
+    ["Levered IRR (after-tax)", R.irrL!=null?(R.irrL*100).toFixed(1)+"%":"n/a"],
+    ["Unlevered IRR (after-tax)", R.irrU!=null?(R.irrU*100).toFixed(1)+"%":"n/a"],
+    ["NPV — levered @ "+fPct(g("discount",sc),0), fK(R.npvL)],
+    ["NPV — unlevered", fK(R.npvU)],
+    ["Equity MOIC", R.moic!=null?R.moic.toFixed(2)+"×":"n/a"],
+    ["Stabilized cash-on-cash", R.coc!=null?(R.coc*100).toFixed(1)+"%":"n/a"],
+    ["Break-even year", String(be)],
+    ["Min / avg DSCR", (R.minDSCR!=null?R.minDSCR.toFixed(2):"n/a")+" / "+(R.avgDSCR!=null?R.avgDSCR.toFixed(2):"n/a")]
+  ];
+  return {cod:cod,N:N,rows:rows,summary:summary};
+}
+function pnlMatrix(sc){
+  var d=buildPnlRows(sc), head=["Line item","Yr 0 ("+(d.cod-1)+")"];
+  for(var i=0;i<d.N;i++) head.push("Yr "+(i+1)+" ("+(d.cod+i)+")");
+  var m=[head].concat(d.rows.map(function(r){return [r.label].concat(r.cells);}));
+  m.push([""]); m.push(["RETURNS (whole hold)"]);
+  d.summary.forEach(function(s){ m.push([s[0], s[1]]); });
+  return m;
+}
+function pnlCell(type,v){
+  if(v===""||v===undefined||v===null) return "";
+  if(type==="price") return "$"+Number(v).toFixed(3);
+  if(type==="ratio") return Number(v).toFixed(2)+"×";
+  if(type==="pct") return (Number(v)*100).toFixed(0)+"%";
+  return fNum(v);   // money / kwh — comma integer
+}
+function renderPnlTable(sc){
+  var d=buildPnlRows(sc), cod=d.cod, N=d.N;
+  var h='<thead><tr><th>Line item ($/yr)</th><th>Yr 0<br><span class="small">'+(cod-1)+'</span></th>';
+  for(var i=0;i<N;i++) h+='<th>Yr '+(i+1)+'<br><span class="small">'+(cod+i)+'</span></th>';
+  h+='</tr></thead><tbody>';
+  d.rows.forEach(function(r){
+    h+='<tr'+(r.cls?' class="'+r.cls+'"':'')+'><td>'+r.label+'</td>';
+    r.cells.forEach(function(v){var neg=(r.type==="money"&&typeof v==="number"&&v<0);h+='<td'+(neg?' class="neg"':'')+'>'+pnlCell(r.type,v)+'</td>';});
+    h+='</tr>';
+  });
+  h+='</tbody>';
+  document.getElementById("pnlTbl").innerHTML=h;
+  // whole-hold returns summary beneath the table (also included in Copy/Download)
+  var sm='<div class="small" style="margin:14px 0 6px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.03em">Returns — whole hold <span style="font-weight:400;text-transform:none;color:var(--mut)">(derived from the Levered FCF row; also on the dashboard)</span></div><div class="grid cols4">';
+  d.summary.forEach(function(s){ sm+='<div class="kv" style="border:1px solid var(--line);border-radius:8px;padding:8px 11px"><span class="k">'+s[0]+'</span><span class="v">'+s[1]+'</span></div>'; });
+  sm+='</div>';
+  document.getElementById("pnlSummary").innerHTML=sm;
+}
+function kpiMatrix(){
+  var Rs={c:compute("c"),b:compute("b"),o:compute("o")}, cod=M.cod.v;
+  var m=[["KPI","Conservative","Base","Optimistic"]];
+  function add(l,f){m.push([l,f(Rs.c),f(Rs.b),f(Rs.o)]);}
+  function pc(x){return x!=null?+(x*100).toFixed(1):"";}
+  add("Levered IRR after-tax (%)",function(R){return pc(R.irrL);});
+  add("Unlevered IRR after-tax (%)",function(R){return pc(R.irrU);});
+  add("NPV levered ($)",function(R){return Math.round(R.npvL);});
+  add("NPV unlevered ($)",function(R){return Math.round(R.npvU);});
+  add("Stabilized cash-on-cash (%)",function(R){return pc(R.coc);});
+  add("Equity MOIC (x)",function(R){return R.moic!=null?+R.moic.toFixed(2):"";});
+  add("Min DSCR (x)",function(R){return R.minDSCR!=null?+R.minDSCR.toFixed(2):"";});
+  add("Avg DSCR (x)",function(R){return R.avgDSCR!=null?+R.avgDSCR.toFixed(2):"";});
+  add("Break-even year",function(R){return R.spb?(cod+R.spb-1):(">"+(cod+R.N-1));});
+  add("Simple payback (yrs)",function(R){return R.spb||(">"+R.N);});
+  add("Total CAPEX ($)",function(R){return Math.round(R.cap.total);});
+  add("Equity invested ($)",function(R){return Math.round(R.equity);});
+  add("Stabilized NOI ($)",function(R){return Math.round(R.rows[R.stYear-1].noi);});
+  add("Terminal value ($)",function(R){return Math.round(R.tv);});
+  add("Residual equity @ horizon ($)",function(R){return Math.round(R.residualL);});
+  return m;
+}
+function toTSV(m){return m.map(function(r){return r.join("\t");}).join("\n");}
+function toCSV(m){return m.map(function(r){return r.map(function(c){var s=String(c);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(",");}).join("\n");}
+function fallbackCopy(txt){var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand("copy");}catch(e){}document.body.removeChild(ta);return ok;}
+function copyText(txt){if(navigator.clipboard&&navigator.clipboard.writeText){return navigator.clipboard.writeText(txt).then(function(){return true;},function(){return fallbackCopy(txt);});}return Promise.resolve(fallbackCopy(txt));}
+function downloadFile(txt,name){var blob=new Blob([txt],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1000);}
+
+/* -------------------- STYLED .XLSX EXPORT (real formatted Excel, no library) --------------------
+   Builds a valid .xlsx (ZIP of XML) with a styles part: Arial, a navy header band, light-blue banded
+   totals, and accounting number formats — so the P&L opens in Excel looking like a real model, not a
+   flat CSV. Entries are ZIP-stored (uncompressed) so no compression lib is needed; CRC32 computed inline. */
+var _crcT;
+function crc32(b){ if(!_crcT){_crcT=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);_crcT[n]=c>>>0;}}
+  var crc=0xFFFFFFFF; for(var i=0;i<b.length;i++) crc=(crc>>>8)^_crcT[(crc^b[i])&0xFF]; return (crc^0xFFFFFFFF)>>>0; }
+function zipStore(files){
+  var chunks=[], central=[], offset=0;
+  function u16(n){return [n&0xFF,(n>>8)&0xFF];} function u32(n){return [n&0xFF,(n>>8)&0xFF,(n>>16)&0xFF,(n>>24)&0xFF];}
+  var te=new TextEncoder();
+  files.forEach(function(f){
+    var nameB=te.encode(f.name), data=f.data, crc=crc32(data);
+    var loc=[].concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameB.length),u16(0));
+    chunks.push(new Uint8Array(loc),nameB,data);
+    central.push({name:nameB,crc:crc,size:data.length,offset:offset});
+    offset+=loc.length+nameB.length+data.length;
+  });
+  var cdStart=offset, cd=[];
+  central.forEach(function(c){
+    var h=[].concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(c.crc),u32(c.size),u32(c.size),u16(c.name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(c.offset));
+    cd.push(new Uint8Array(h),c.name); offset+=h.length+c.name.length;
+  });
+  var eocd=new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(offset-cdStart),u32(cdStart),u16(0)));
+  var all=chunks.concat(cd,[eocd]), total=all.reduce(function(s,c){return s+c.length;},0), out=new Uint8Array(total), o=0;
+  all.forEach(function(c){out.set(c,o);o+=c.length;}); return out;
+}
+var XLSX_STYLES='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+'<numFmts count="5">'+
+'<numFmt numFmtId="164" formatCode="\\$#,##0.000;&quot;($&quot;#,##0.000\\);\\-"/>'+
+'<numFmt numFmtId="165" formatCode="0%"/>'+
+'<numFmt numFmtId="166" formatCode="\\$#,##0;&quot;($&quot;#,##0\\);\\-"/>'+
+'<numFmt numFmtId="167" formatCode="0.00\\x"/>'+
+'<numFmt numFmtId="171" formatCode="#,##0;\\(#,##0\\);\\-"/>'+
+'</numFmts>'+
+'<fonts count="6">'+
+'<font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/></font>'+
+'<font><sz val="10"/><color rgb="FF000000"/><name val="Arial"/><family val="2"/></font>'+
+'<font><b/><sz val="10"/><color rgb="FF000000"/><name val="Arial"/><family val="2"/></font>'+
+'<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Arial"/><family val="2"/></font>'+
+'<font><i/><sz val="10"/><color rgb="FF808080"/><name val="Arial"/><family val="2"/></font>'+
+'<font><b/><sz val="14"/><color rgb="FF1F3864"/><name val="Arial"/><family val="2"/></font>'+
+'</fonts>'+
+'<fills count="5">'+
+'<fill><patternFill patternType="none"/></fill>'+
+'<fill><patternFill patternType="gray125"/></fill>'+
+'<fill><patternFill patternType="solid"><fgColor rgb="FF1F3864"/><bgColor indexed="64"/></patternFill></fill>'+
+'<fill><patternFill patternType="solid"><fgColor rgb="FFD9E1F2"/><bgColor indexed="64"/></patternFill></fill>'+
+'<fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/><bgColor indexed="64"/></patternFill></fill>'+
+'</fills>'+
+'<borders count="2">'+
+'<border><left/><right/><top/><bottom/><diagonal/></border>'+
+'<border><left/><right/><top style="thin"><color rgb="FF9DA9C0"/></top><bottom/><diagonal/></border>'+
+'</borders>'+
+'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'+
+'<cellXfs count="15">'+
+'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'+                                                                                              /*0 default*/
+'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left"/></xf>'+                            /*1 label*/
+'<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left" indent="1"/></xf>'+                  /*2 sub label*/
+'<xf numFmtId="0" fontId="2" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left"/></xf>'+ /*3 total label*/
+'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="left"/></xf>'+                /*4 header label*/
+'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf>'+              /*5 header data*/
+'<xf numFmtId="166" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyAlignment="1"><alignment horizontal="right"/></xf>'+     /*6 money*/
+'<xf numFmtId="166" fontId="2" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right"/></xf>'+ /*7 money total*/
+'<xf numFmtId="171" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyAlignment="1"><alignment horizontal="right"/></xf>'+     /*8 kwh*/
+'<xf numFmtId="165" fontId="4" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyAlignment="1"><alignment horizontal="right"/></xf>'+     /*9 pct*/
+'<xf numFmtId="164" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyAlignment="1"><alignment horizontal="right"/></xf>'+     /*10 price*/
+'<xf numFmtId="167" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyAlignment="1"><alignment horizontal="right"/></xf>'+     /*11 ratio*/
+'<xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left"/></xf>'+                              /*12 title*/
+'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="right"/></xf>'+                             /*13 returns value*/
+'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left"/></xf>'+                              /*14 bold label*/
+'</cellXfs></styleSheet>';
+function pnlSheetXml(sc){
+  var d=buildPnlRows(sc), cod=d.cod, N=d.N;
+  var esc=function(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");};
+  function colL(i){var s="",j=i+1;while(j>0){var m=(j-1)%26;s=String.fromCharCode(65+m)+s;j=Math.floor((j-1)/26);}return s;}
+  function cStr(ci,ri,s,t){return '<c r="'+colL(ci)+ri+'" s="'+s+'" t="inlineStr"><is><t xml:space="preserve">'+esc(t)+'</t></is></c>';}
+  function cNum(ci,ri,s,n){return '<c r="'+colL(ci)+ri+'" s="'+s+'"><v>'+n+'</v></c>';}
+  function dStyle(type,tot){ if(tot&&type==="money")return 7; if(type==="money")return 6; if(type==="kwh")return 8; if(type==="pct")return 9; if(type==="price")return 10; if(type==="ratio")return 11; return 6; }
+  var rows=[], ri=0, cells;
+  ri++; rows.push('<row r="'+ri+'" ht="19" customHeight="1">'+cStr(0,ri,12,"Annual P&L & Cash Flow — "+SCEN[sc]+" scenario")+'</row>');
+  ri++; rows.push('<row r="'+ri+'"/>');
+  ri++; cells=[cStr(0,ri,4,"Line item ($/yr)")]; for(var y=0;y<=N;y++) cells.push(cStr(y+1,ri,5,"Yr "+y+" ("+(cod+y-1)+")")); rows.push('<row r="'+ri+'">'+cells.join("")+'</row>');
+  d.rows.forEach(function(r){
+    ri++; var tot=(r.cls==="tot"), lblS=(r.cls==="tot")?3:(r.cls==="sub")?2:1;
+    cells=[cStr(0,ri,lblS,r.label)];
+    for(var c=0;c<r.cells.length;c++){ var v=r.cells[c]; if(v===""||v===undefined||v===null) continue; if(typeof v==="number"&&isNaN(v)) continue; cells.push(cNum(c+1,ri, (tot?7:dStyle(r.type,false)), v)); }  /* +1: column A is the label */
+    rows.push('<row r="'+ri+'">'+cells.join("")+'</row>');
+  });
+  ri++; rows.push('<row r="'+ri+'"/>');
+  ri++; rows.push('<row r="'+ri+'">'+cStr(0,ri,3,"RETURNS (whole hold)")+'</row>');
+  d.summary.forEach(function(s){ ri++; rows.push('<row r="'+ri+'">'+cStr(0,ri,14,s[0])+cStr(1,ri,13,s[1])+'</row>'); });
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+    '<sheetViews><sheetView showGridLines="0" workbookViewId="0"><pane xSplit="1" ySplit="3" topLeftCell="B4" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>'+
+    '<sheetFormatPr defaultRowHeight="14.5"/>'+
+    '<cols><col min="1" max="1" width="34" customWidth="1"/><col min="2" max="'+(N+2)+'" width="12.5" customWidth="1"/></cols>'+
+    '<sheetData>'+rows.join("")+'</sheetData></worksheet>';
+}
+function pnlXlsxBytes(sc){
+  var te=new TextEncoder(), enc=function(s){return te.encode(s);};
+  return zipStore([
+    {name:"[Content_Types].xml", data:enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>')},
+    {name:"_rels/.rels", data:enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>')},
+    {name:"xl/workbook.xml", data:enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="P&amp;L" sheetId="1" r:id="rId1"/></sheets></workbook>')},
+    {name:"xl/_rels/workbook.xml.rels", data:enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>')},
+    {name:"xl/styles.xml", data:enc(XLSX_STYLES)},
+    {name:"xl/worksheets/sheet1.xml", data:enc(pnlSheetXml(sc))}
+  ]);
+}
+function downloadPnlXlsx(){
+  var bytes=pnlXlsxBytes(SC), blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+  var url=URL.createObjectURL(blob), a=document.createElement("a"); a.href=url; a.download="PnL_"+SCEN[SC]+".xlsx";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  flashMsg("Downloaded PnL_"+SCEN[SC]+".xlsx — styled");
+}
+function flashMsg(t){var e=document.getElementById("expMsg");e.textContent=t;setTimeout(function(){if(e.textContent===t)e.textContent="";},2500);}
+function renderExport(){document.getElementById("expScen").textContent=SCEN[SC];
+  if(!allCriticalFilled()){ document.getElementById("pnlTbl").innerHTML='<tbody><tr><td style="padding:14px">'+gateMsg()+'</td></tr></tbody>'; document.getElementById("pnlSummary").innerHTML=""; document.getElementById("expPreview").value=""; return; }
+  renderPnlTable(SC);document.getElementById("expPreview").value=toTSV(pnlMatrix(SC));}
+
+/* -------------------- IMPORT / AUTO-FILL FROM A DOCUMENT -------------------- */
+// JSON round-trip (exact, offline) — the reliable path; also save/share a scenario
+/* -------------------- SITE IDENTIFICATION (name & address — display + export only, not in the engine) -------------------- */
+var SITE={name:"", address:""};
+function escHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function renderSiteId(){
+  var line=document.getElementById("siteIdLine"); if(!line) return;
+  var p=[]; if(SITE.name) p.push("<b>"+escHtml(SITE.name)+"</b>"); if(SITE.address) p.push(escHtml(SITE.address));
+  line.innerHTML=p.join(" &nbsp;·&nbsp; "); line.style.display=p.length?"block":"none";
+}
+function syncSiteInputs(){   // push SITE -> the static text inputs (after import / clear), then refresh the header line
+  var n=document.getElementById("siteName"), a=document.getElementById("siteAddr");
+  if(n) n.value=SITE.name; if(a) a.value=SITE.address; renderSiteId();
+}
+function wireSiteInputs(){
+  var n=document.getElementById("siteName"), a=document.getElementById("siteAddr");
+  if(n) n.addEventListener("input",function(){ SITE.name=n.value; renderSiteId(); });
+  if(a) a.addEventListener("input",function(){ SITE.address=a.value; renderSiteId(); });
+}
+
+function inputsToJSON(){var o={};for(var k in M){var f=M[k];o[k]=(f.c!==undefined)?{c:f.c,b:f.b,o:f.o}:f.v;}o.__site__={name:SITE.name,address:SITE.address};return JSON.stringify(o,null,2);}
+function applyInputsObj(o){var n=0;
+  if(o&&o.__site__){ SITE.name=o.__site__.name||""; SITE.address=o.__site__.address||""; syncSiteInputs(); }
+  for(var k in o){if(!M[k])continue;var f=M[k],v=o[k];
+  if(f.c!==undefined&&v&&typeof v==="object"){if("c"in v)f.c=+v.c;if("b"in v)f.b=+v.b;if("o"in v)f.o=+v.o;SRC[k]=true;n++;}
+  else if(f.c===undefined&&(typeof v==="number"||typeof v==="string")){f.v=v;SRC[k]=true;n++;}}
+  return n;}
+
+// Heuristic document parser: label phrase → grab the next number in a short window.
+// Tuned to the wording in the project's assumptions/research docs. kind: money|pct|num.
+// Tuned to the exact row labels in the project's Global Assumptions & site P&L tabs
+// (also catches the research-doc prose). t = [[Mkey, col], …]; col v|c|b|o. kind money|pct|num|util.
+var MATCHERS=[
+  // Module 0 · site & scenario
+  {t:[["cod","v"]],label:"Commercial operation date (yr)",kind:"num",re:/commercial operation date|in-?service date|\bCOD\b/i},
+  {t:[["horizon","v"]],label:"Analysis horizon / hold (yrs)",kind:"num",re:/analysis horizon|hold period/i},
+  {t:[["discount","v"]],label:"Discount / hurdle rate",kind:"pct",re:/discount\s*\/?\s*hurdle|hurdle rate|discount rate/i},
+  {t:[["opexInfl","v"]],label:"General opex inflation",kind:"pct",re:/opex inflation|general inflation/i},
+  {t:[["taxRate","v"]],label:"Corporate income tax rate",kind:"pct",re:/corporate income tax/i},
+  {t:[["excise","b"]],label:"WA excise — effective rate",kind:"pct",re:/excise[^.\n]{0,30}effective/i},
+  // Hardware
+  {t:[["nameplate","v"]],label:"Installed nameplate power (kW)",kind:"num",re:/installed power|nameplate power|installed nameplate|installed capacity/i},
+  {t:[["ports","v"]],label:"Ports / stalls",kind:"num",re:/number of posts|posts?\s*\/\s*stalls|ports?\s*\/\s*stalls/i},
+  {t:[["ports","v"]],label:"Ports per site",kind:"num",re:/(?:total\s+)?ports?\s+per\s+site|number of ports/i},
+  {t:[["ratedPort","v"]],label:"Rated power per port (kW)",kind:"num",re:/rated power per port/i},
+  {t:[["hwLife","b"]],label:"Hardware useful life (yrs)",kind:"num",re:/hardware useful life|useful life/i},
+  // Ramp / growth / caps
+  {t:[["rampY1","v"]],label:"Year-1 ramp (% of stabilized)",kind:"pct",re:/year-?\s?1 ramp/i},
+  {t:[["parcCAGR","v"]],label:"Post-stabilization EV-parc CAGR",kind:"pct",re:/ev-?parc cagr|post-stabilization[^.\n]{0,20}cagr/i},
+  {t:[["maxUtil","v"]],label:"Max sustainable utilization (ceiling)",kind:"pct",re:/max sustainable utilization|physical ceiling/i},
+  {t:[["onPeakShare","v"]],label:"On-peak / peak-hour energy share",kind:"pct",re:/peak-hour energy share|on-peak energy share/i},
+  // Utilization telemetry (their sheets drive off day-avg utilization → back-solve sessions)
+  {t:[["__util__","b"]],label:"Day-avg utilization → sessions/port/day",kind:"util",re:/day-?avg utilization/i},
+  {t:[["kwhSess","v"]],label:"Avg kWh per session",kind:"num",re:/kwh per session|energy per session/i},
+  {t:[["sessPort","b"]],label:"Sessions per port / day",kind:"num",re:/sessions?\s*(?:per|\/)\s*port/i},
+  {t:[["idle","v"]],label:"Idle share",kind:"pct",re:/idle share|idle time/i},
+  // Revenue (retail spread: BASE / Low / High)
+  {t:[["retailOn","b"],["retailOff","b"]],label:"Retail price to driver",kind:"money",re:/retail price to driver/i},
+  {t:[["retailOn","c"],["retailOff","c"]],label:"Retail price — Low / Conservative",kind:"money",re:/retail price\s*[—\-–]\s*low|retail price[^.\n]{0,25}conservativ/i},
+  {t:[["retailOn","o"],["retailOff","o"]],label:"Retail price — High / Optimistic",kind:"money",re:/retail price\s*[—\-–]\s*high|retail price[^.\n]{0,25}optimist/i},
+  {t:[["priceEsc","b"]],label:"Retail price escalator",kind:"pct",re:/retail price escalat|price escalat/i},
+  {t:[["cfsPerPort","v"]],label:"CFS credit ($/port/yr)",kind:"money",re:/clean fuel[^\n]{0,30}per\s*port|cfs[^\n]{0,20}per\s*port|credit[^\n]{0,15}per\s*port\s*per\s*year/i},
+  {t:[["ancillary","v"]],label:"Ancillary revenue ($/yr)",kind:"money",re:/ancillary revenue/i},
+  // Power
+  {t:[["powerEsc","v"]],label:"Tariff / power escalator",kind:"pct",re:/tariff escalat|power escalat/i},
+  // LTSA / services fee
+  {t:[["feeKwh","v"]],label:"Network / O&M services fee ($/kWh)",kind:"money",re:/services? fee|network fee|o&m fee/i},
+  {t:[["feeEsc","v"]],label:"Services fee escalator",kind:"pct",re:/fee escalat/i},
+  // Opex
+  {t:[["siteMaint","v"]],label:"Site maintenance ($/yr)",kind:"money",re:/site maintenance/i},
+  {t:[["insurance","v"]],label:"Insurance ($/yr)",kind:"money",re:/insurance/i},
+  {t:[["propTax","v"]],label:"Property tax ($/yr)",kind:"money",re:/property tax/i},
+  {t:[["network","v"]],label:"Network / payment ($/yr)",kind:"money",re:/network\s*\/\s*payment|payment processing/i},
+  {t:[["reserve","v"]],label:"Replacement / refresh reserve ($/yr)",kind:"money",re:/replacement\s*\/?\s*refresh reserve|refresh reserve/i},
+  {t:[["mgmt","v"]],label:"Management / admin fee ($/yr)",kind:"money",re:/management\s*\/\s*admin|management fee/i},
+  {t:[["groundLease","v"]],label:"Ground lease ($/yr)",kind:"money",re:/ground lease/i},
+  {t:[["groundLease","v"]],label:"Ground lease per site ($/yr)",kind:"money",re:/ground lease per site|ground lease[^\n]{0,20}\/\s*yr|ground lease[^\n]{0,20}per year/i},
+  // CAPEX
+  {t:[["equipPerPost","v"]],label:"Equipment BOM per post ($)",kind:"money",re:/equipment bom per post|equipment bom/i},
+  {t:[["installPerCharger","v"]],label:"Installation / turnkey per charger ($)",kind:"money",re:/installation\s*\/\s*turnkey|turnkey per charger/i},
+  {t:[["makeReady","b"]],label:"Make-ready / trenching / electrical ($)",kind:"money",re:/make[-\s]?ready/i},
+  {t:[["interconnect","b"]],label:"Utility interconnection ($)",kind:"money",re:/utility interconnection|interconnection\s*(?:fee|cost|charge|:|\$)/i},
+  {t:[["siteCivil","v"]],label:"Site civil ($)",kind:"money",re:/site civil/i},
+  {t:[["permitting","v"]],label:"Permitting & engineering ($)",kind:"money",re:/permitting/i},
+  {t:[["softPct","v"]],label:"Soft costs / contingency",kind:"pct",re:/soft costs?/i},
+  {t:[["land","v"]],label:"Land — parcel ($)",kind:"money",re:/land\s*[—\-–]\s*parcel|parcel\s*\(not depreciable\)/i},
+  {t:[["refreshCapex","v"]],label:"Mid-life refresh CAPEX ($)",kind:"money",re:/refresh capex/i},
+  // Financing
+  {t:[["debtPct","v"]],label:"Debt % of CAPEX",kind:"pct",re:/debt\s*\/?\s*equity|debt %|debt percent/i},
+  {t:[["rate","v"]],label:"Interest rate",kind:"pct",re:/interest rate|loan rate/i},
+  {t:[["term","v"]],label:"Loan term (yrs)",kind:"num",re:/loan term|amortization/i},
+  // Terminal
+  {t:[["capRate","v"]],label:"Terminal cap rate",kind:"pct",re:/terminal cap rate/i},
+  {t:[["ebitdaMult","v"]],label:"Terminal EV/EBITDA multiple",kind:"num",re:/ev\s*\/\s*ebitda|ebitda cross-check|ebitda multiple/i},
+  {t:[["landAppr","v"]],label:"Land appreciation",kind:"pct",re:/land appreciation/i},
+  // ---- Site-overview / project-narrative prose (capture-group patterns, cap:true) ----
+  {t:[["ports","v"]],label:"Stalls / ports (site overview)",kind:"num",cap:true,re:/(?:^|[^\d.$])(\d{1,3})[ \t]*(?:-?[ \t]?stalls?\b|total ports)/i},
+  {t:[["groundLease","v"]],label:"Ground lease — $/stall/mo × stalls × 12",kind:"money",cap:true,re:/\$\s*([\d,]+)\s*(?:per\s*stall|\/\s*stall|stall)\s*(?:per\s*month|\/\s*mo\b|month)/i,xf:function(v,c){return v*c.ports*12;}},
+  {t:[["neviGrant","v"]],label:"State / NEVI grant (State Funds)",kind:"money",cap:true,re:/state funds?\s*[=:\-]\s*\$?\s*([\d,]+(?:\.\d+)?)/i},
+  {t:[["equipPerPost","v"]],label:"Equipment per post (vendor total ÷ ports)",kind:"money",cap:true,re:/(?:electric\s*era|electrica|charger vendor|equipment)\s*[-–—]\s*\$\s*([\d,]+)/i,xf:function(v,c){return Math.round(v/Math.max(1,c.ports));}},
+  {t:[["interconnect","b"]],label:"Utility interconnection (Utility Fee)",kind:"money",cap:true,re:/utility fee\s*[-–—]\s*\$\s*([\d,]+)/i},
+  {t:[["permitting","v"]],label:"Engineering / permitting",kind:"money",cap:true,re:/engineering\s*[-–—]\s*\$\s*([\d,]+)/i},
+  {t:[["makeReady","b"]],label:"Construction / make-ready",kind:"money",cap:true,re:/construction costs?\s*[–\-—]\s*\$\s*([\d,]+)/i},
+  // ---- Utility tariff schedules (rate-sheet prose; kind rate = $/kWh cents-aware, demand = $/kW) ----
+  {t:[["tCustomer","v"]],label:"Customer / basic charge ($/mo)",kind:"money",cap:true,re:/(?:customer|basic|monthly service)\s*charge[^$\n]{0,25}?\$\s*([\d,]+(?:\.\d+)?)/i},
+  {t:[["tEnergyOn","v"]],label:"On-peak energy ($/kWh)",kind:"rate",cap:true,re:/on-?peak[^$\n]{0,34}?\$?\s*(\d+(?:\.\d+)?)\s*(?:¢|cents?|\$)?\s*(?:per\s*|\/)?\s*kwh/i},
+  {t:[["tEnergyOff","v"]],label:"Off-peak energy ($/kWh)",kind:"rate",cap:true,re:/off-?peak[^$\n]{0,34}?\$?\s*(\d+(?:\.\d+)?)\s*(?:¢|cents?|\$)?\s*(?:per\s*|\/)?\s*kwh/i},
+  {t:[["tDemand","v"]],label:"Demand charge ($/kW/mo)",kind:"demand",cap:true,re:/demand\s*charge[^$\n]{0,25}?\$?\s*([\d,]+(?:\.\d+)?)\s*(?:per\s*|\/)?\s*kw\b/i}
+];
+function grabNumber(text, re){
+  var m=re.exec(text); if(!m) return null;
+  var start=m.index+m[0].length, raw=text.slice(start, start+60);
+  var win=raw.replace(/\([^)]*\)/g," ");   // ignore descriptive parentheticals — "(4–9pm)", "(0 = uncapped)", units
+  var nm=/(\$?\s*-?[\d,]*\d(?:\.\d+)?)\s*(%?)/.exec(win);   // first real number after the label
+  if(!nm) return null;
+  var val=parseFloat(nm[1].replace(/[$,\s]/g,""));
+  if(isNaN(val)) return null;
+  return {val:val, pct:nm[2]==="%", snippet:(m[0]+" "+raw).replace(/\s+/g," ").trim().slice(0,72)};
+}
+function grabCap(text, re){   // capture-group extraction (site-overview prose)
+  var m=re.exec(text); if(!m) return null;
+  var raw=null; for(var i=1;i<m.length;i++){ if(m[i]!==undefined){ raw=m[i]; break; } }
+  if(raw===null) return null;
+  var val=parseFloat(String(raw).replace(/[$,\s]/g,""));
+  if(isNaN(val)) return null;
+  return {val:val, pct:false, snippet:m[0].replace(/\s+/g," ").trim().slice(0,72)};
+}
+var PROPOSALS=[];
+var IMPORT_WARN="";   // review-time caution (red) — e.g. grant + project-cost double-count risk
+var IMPORT_INFO="";   // review-time confirmation (green) — e.g. recognized tariff, nothing to change
+
+/* Commercial rate-schedule parser (e.g. PSE Schedule 26 "Large Demand General Service" and peers).
+   These sheets state the charges inline: "Basic Charge: $109.08", "Energy Charge: $0.059096 per kWh",
+   "Demand Charge: OCT-MAR APR-SEP $12.23 $8.15 per kW" (seasonal → two values, averaged). We read the
+   FIRST occurrence of each (the main Secondary-Voltage rate, before any Primary-voltage adjustments). */
+function parseCommercialTariff(text){
+  var t=text.replace(/\s+/g," ");
+  var out={notes:[]};
+  // Basic / customer charge ($/mo) — require a $ so prose "customer charges: 1" can't match
+  var b=/(?:basic|customer|monthly service)\s*charge[^$\n]{0,20}?\$\s*([\d,]+(?:\.\d+)?)/i.exec(t);
+  if(b) out.tCustomer=parseFloat(b[1].replace(/,/g,""));
+  // Energy charge ($/kWh, or ¢/kWh)
+  var e=/energy\s*charge[^$\n\d]{0,20}?\$\s*(\d+(?:\.\d+)?)\s*(?:per\s*|\/)?\s*kwh/i.exec(t)
+      || /energy\s*charge[^\n\d]{0,20}?(\d+(?:\.\d+)?)\s*(?:¢|cents?)\s*(?:per\s*|\/)?\s*kwh/i.exec(t);
+  if(e){ var ev=parseFloat(e[1]); if(ev>1.5) ev/=100; out.tEnergyOn=ev; out.tEnergyOff=ev; }   // flat schedule → on=off
+  // Demand charge ($/kW/mo). May be seasonal (two $ values before "per kW") → average them.
+  var d=/demand\s*charge[^$\n]{0,45}?\$\s*(\d+(?:\.\d+)?)(?:[^$\n]{0,12}?\$\s*(\d+(?:\.\d+)?))?[^$\n]{0,15}?per\s*kw/i.exec(t);
+  if(d){ var d1=parseFloat(d[1]), d2=d[2]?parseFloat(d[2]):null;
+    out.tDemand = d2!=null ? (d1+d2)/2 : d1;
+    if(d2!=null) out.notes.push("seasonal demand averaged: $"+d1+" & $"+d2+" → $"+out.tDemand.toFixed(2)+"/kW"); }
+  out.found = (out.tCustomer!==undefined || out.tEnergyOn!==undefined || out.tDemand!==undefined);
+  var sp=[];
+  if(out.tCustomer!==undefined) sp.push("$"+out.tCustomer+"/mo basic");
+  if(out.tEnergyOn!==undefined)  sp.push("$"+out.tEnergyOn+"/kWh energy");
+  if(out.tDemand!==undefined)    sp.push("$"+(+out.tDemand).toFixed(2)+"/kW demand");
+  out.summary=sp.join(" · ");
+  return out.found ? out : null;
+}
+
+function scanText(text){
+  PROPOSALS=[]; IMPORT_WARN=""; IMPORT_INFO=""; var utilFrac=null, utilSnip="";
+  function pend(key,def){for(var i=0;i<PROPOSALS.length;i++)if(PROPOSALS[i].key===key)return PROPOSALS[i].proposed;return def;}
+  function add(key,col,label,kind,cur,proposed,snip){
+    if(typeof cur==="number"&&typeof proposed==="number"){ if(Math.abs(cur-proposed)<1e-9) return; }
+    else if(cur===proposed) return;
+    var rec={key:key,col:col,label:label,kind:kind,current:cur,proposed:proposed,snippet:snip};
+    for(var i=0;i<PROPOSALS.length;i++){ if(PROPOSALS[i].key===key && PROPOSALS[i].col===col){ PROPOSALS[i]=rec; return; } }  // dedupe: keep last (later rows tend to be per-site/derived totals)
+    PROPOSALS.push(rec);
+  }
+  MATCHERS.forEach(function(mt){
+    var g=mt.cap?grabCap(text, mt.re):grabNumber(text, mt.re); if(!g) return;
+    var val=g.val;
+    if(mt.kind==="util"){ utilFrac=(val>1.5? val/100 : val); utilSnip=g.snippet; return; }
+    if(mt.kind==="pct"){ if(!g.pct && val<=1.5) val=val*100; val=Math.round(val*1e4)/1e4; }   // 0.10 → 10%, de-noise floats
+    if(mt.kind==="rate" && val>1.5) val=val/100;   // cents/kWh → $/kWh
+    if(mt.xf){ val=mt.xf(val,{ports:pend("ports",M.ports.v),nameplate:pend("nameplate",M.nameplate.v),kwhSess:pend("kwhSess",M.kwhSess.v)}); }
+    mt.t.forEach(function(tg){
+      var key=tg[0], col=tg[1], f=M[key]; if(!f) return;
+      if(col!=="v" && f.c===undefined) col="v";              // single field safety
+      add(key,col,mt.label,(mt.kind==="util"?"num":mt.kind),(col==="v")?f.v:f[col],val,g.snippet);
+    });
+  });
+  // Site-overview: "(N) … MMM kW" stations → nameplate = N × MMM, then rated/port = nameplate ÷ ports
+  var mp=/\((\d{1,2})\)\s*[^\n]{0,60}?(\d{2,4})\s*kw/i.exec(text);
+  if(mp){
+    var np=parseInt(mp[1],10)*parseInt(mp[2],10), pts=pend("ports",M.ports.v);
+    add("nameplate","v","Installed nameplate ("+mp[1]+" stations × "+mp[2]+" kW — verify)","num",M.nameplate.v,np,mp[0].replace(/\s+/g," ").trim().slice(0,72));
+    if(pts>0) add("ratedPort","v","Rated power per port (nameplate ÷ ports)","num",M.ratedPort.v,Math.round(np/pts),np+" kW ÷ "+pts+" ports");
+  }
+  // Ground lease detected → land is leased, not bought → 0
+  if(pend("groundLease",null)!==null) add("land","v","Land — parcel (site is leased → 0)","money",M.land.v,0,"lease detected → land = 0");
+  // Itemized CAPEX found → switch the CAPEX card to Detailed so the line-items are actually used
+  if(["equipPerPost","installPerCharger","makeReady","interconnect","siteCivil","permitting","softPct"].some(function(k){return pend(k,null)!==null;}) && M.capexMode.v!=="detailed")
+    add("capexMode","v","CAPEX detail → Detailed (itemized costs found)","str",M.capexMode.v,"detailed","itemized CAPEX detected");
+  // Full project cost-breakdown detected → non-itemized CAPEX slots would double-count; offer to zero them
+  if(/construction breakdown|cost breakdown|total cv|utility fee\s*[-–—]\s*\$/i.test(text)){
+    add("installPerCharger","v","Install/turnkey — not itemized in this breakdown → 0 (uncheck to keep)","money",M.installPerCharger.v,0,"itemized breakdown detected");
+    add("siteCivil","v","Site civil — folded into Construction Costs → 0 (uncheck to keep)","money",M.siteCivil.v,0,"itemized breakdown detected");
+  }
+  // ---- Commercial utility rate schedule (e.g. PSE Schedule 26). Reads Basic / Energy / Demand charges ----
+  var rt=parseCommercialTariff(text);
+  if(rt){
+    if(pend("tCustomer",null)===null && rt.tCustomer!==undefined)  add("tCustomer","v","Customer / basic charge ($/mo)","money",M.tCustomer.v,rt.tCustomer,rt.summary);
+    if(pend("tEnergyOn",null)===null && rt.tEnergyOn!==undefined)  add("tEnergyOn","v","Energy — on-peak ($/kWh)","rate",M.tEnergyOn.v,rt.tEnergyOn,rt.summary);
+    if(pend("tEnergyOff",null)===null && rt.tEnergyOff!==undefined) add("tEnergyOff","v","Energy — off-peak ($/kWh)","rate",M.tEnergyOff.v,rt.tEnergyOff,rt.summary);
+    if(pend("tDemand",null)===null && rt.tDemand!==undefined)      add("tDemand","v","Demand charge ($/kW/mo)","demand",M.tDemand.v,rt.tDemand,rt.summary);
+    IMPORT_INFO='<b>✓ Commercial rate schedule recognized.</b> Read '+rt.summary+'. '+
+      (rt.notes.length? '('+rt.notes.join("; ")+'.) ' : '')+
+      'Apply the items below to load these into <b>Module 5</b>. The site pays this commercial rate — add an optional <b>premium</b> there if your utility applies one.';
+  } else {
+    // no explicit charges found — inline flat-energy fallback, else a "referential tariff" note
+    if(pend("tEnergyOn",null)===null){
+      var fe=/energy\s*(?:charge|rate)[^$\n]{0,25}?\$?\s*(\d+(?:\.\d+)?)\s*(?:¢|cents?)?\s*(?:per\s*|\/)?\s*kwh/i.exec(text);
+      if(fe){ var r=parseFloat(fe[1]); if(r>1.5)r/=100; var sn=fe[0].replace(/\s+/g," ").trim().slice(0,72);
+        add("tEnergyOn","v","Energy rate — flat ($/kWh)","rate",M.tEnergyOn.v,r,sn); add("tEnergyOff","v","Energy rate — flat ($/kWh)","rate",M.tEnergyOff.v,r,sn); }
+    }
+    // Looks like a tariff but no numeric rates were found — often a referential rider that points to another
+    // schedule (e.g. Tacoma Power Schedule FC). Say so plainly instead of surfacing junk from the prose.
+    var gotRate = pend("tCustomer",null)!==null||pend("tEnergyOn",null)!==null||pend("tEnergyOff",null)!==null||pend("tDemand",null)!==null;
+    if(!gotRate && PROPOSALS.length===0 && /tariff|rate schedule|schedule\s+[A-Z0-9]{1,4}\b|per\s*kwh|customer charge|demand charge|energy charge/i.test(text)){
+      var referential=/otherwise applicable|applicable published rate schedule|charges of section|energy adder|rate schedule set forth|as set forth in chapter/i.test(text);
+      IMPORT_INFO='<b>Tariff document recognized, but it contains no rate figures to read.</b> '+
+        (referential? 'This schedule defines its charges <b>by reference to another rate schedule</b> (common for EV riders) rather than listing $/kWh, $/kW and customer-charge numbers — so there is nothing to auto-fill from this file alone. '
+                    : 'No $/kWh, $/kW or customer-charge figures were found in this document. ')+
+        'Enter the commercial base rates into <b>Module 5</b> — customer charge, energy $/kWh and demand $/kW.';
+    }
+  }
+  // Their sheets input day-avg utilization directly; this model derives it from sessions.
+  if(utilFrac!==null){
+    var un=pend("nameplate",M.nameplate.v), ut=pend("ports",M.ports.v), uk=pend("kwhSess",M.kwhSess.v);
+    if(ut>0 && uk>0){
+      var sess=Math.round(utilFrac*un*8760/(ut*uk*365)*10)/10;
+      add("sessPort","b","Sessions/port/day — back-solved from utilization "+(utilFrac*100).toFixed(1)+"%","num",M.sessPort.b,sess,utilSnip||("util "+(utilFrac*100).toFixed(1)+"%"));
+    }
+  }
+  // Grant + project-cost collision → warn about the out-of-pocket double-count BEFORE the user applies
+  var capexKeys={allInPerPost:1,equipPerPost:1,installPerCharger:1,makeReady:1,interconnect:1,siteCivil:1,permitting:1};
+  var grantAmt=0, capexFound=false;
+  PROPOSALS.forEach(function(p){
+    if((p.key==="neviGrant"||p.key==="makeReadyRebate"||p.key==="fed30C") && +p.proposed>0) grantAmt+=+p.proposed;
+    if(capexKeys[p.key] && +p.proposed>0) capexFound=true;
+  });
+  if(grantAmt>0 && capexFound){
+    var oopHit=/out[- ]of[- ]pocket|owner[^.\n]{0,30}\bmatch\b|\bmatch\b[^.\n]{0,30}(?:project|cost|overall)/i.test(text);
+    var oopM=/(?:out[- ]of[- ]pocket|owner[^.\n]{0,30}match|\bmatch\b)[^$\n]{0,90}\$\s*([\d,]+)/i.exec(text);
+    var oopAmt=oopM?parseFloat(oopM[1].replace(/[^\d.]/g,"")):null;
+    IMPORT_WARN='<b>⚠ This document has a grant ('+fUSD(grantAmt)+') AND project costs.</b> The model treats CAPEX as the <b>gross</b> project cost and subtracts grants separately (Module 8) — so applying both is correct <i>only if your CAPEX is the gross cost</i>. '+
+      (oopHit
+        ? ('This flyer mentions an <b>out-of-pocket / owner-match'+(oopAmt?(' ('+fUSD(oopAmt)+')'):'')+'</b> figure, which is <i>already net</i> of the grant. If you enter that as CAPEX, <b>uncheck the grant below</b> so it isn’t double-counted. Otherwise enter the <b>gross</b> project cost and keep the grant.')
+        : 'If you enter an <b>out-of-pocket</b> cost as CAPEX, <b>uncheck the grant below</b> so it isn’t double-counted.');
+  }
+  renderReview();
+}
+function fmtProp(kind,v){
+  if(typeof v==="string") return v;
+  if(kind==="pct")return (+v).toFixed(2).replace(/\.?0+$/,"")+"%";
+  if(kind==="rate")return "$"+(+v).toFixed(4).replace(/0+$/,"").replace(/\.$/,".0")+"/kWh";
+  if(kind==="demand")return "$"+(+v).toLocaleString()+"/kW";
+  if(kind==="money")return "$"+(+v).toLocaleString();
+  return (+v).toLocaleString();
+}
+function renderReview(){
+  var el=document.getElementById("impReview");
+  var infoBox = IMPORT_INFO ? '<div style="background:#eef7f0;border:1px solid #cfe6d6;border-radius:8px;padding:10px 13px;margin:0 0 10px;font-size:12.5px;line-height:1.5;color:#26583c">'+IMPORT_INFO+'</div>' : '';
+  var warnBox = IMPORT_WARN ? '<div style="background:#fdeaea;border:1px solid #f0c0c0;border-radius:8px;padding:10px 13px;margin:0 0 10px;font-size:12.5px;line-height:1.5;color:#7a2e2e">'+IMPORT_WARN+'</div>' : '';
+  if(!PROPOSALS.length){
+    el.innerHTML = (infoBox||warnBox)
+      ? (warnBox+infoBox)
+      : '<p class="small" style="color:var(--warn)">No labeled inputs recognized. Try pasting more of the document (labels like “Retail price”, “nameplate”, “sessions per port”, “cap rate”, “make-ready”). Structured JSON import is exact if you have it.</p>';
+    return;
+  }
+  var h='';
+  h+=warnBox+infoBox;
+  h+='<div class="small" style="margin:0 0 8px"><b>'+PROPOSALS.length+'</b> input(s) found — review, untick any you don’t want, then apply. <b>Nothing changes until you click Apply.</b> Scenario fields set the Base column.</div>';
+  h+='<div class="tblwrap"><table><thead><tr><th style="width:28px"></th><th>Input</th><th>Current</th><th>Proposed</th><th>Matched text</th></tr></thead><tbody>';
+  PROPOSALS.forEach(function(p,i){
+    h+='<tr><td style="text-align:center"><input type="checkbox" data-i="'+i+'" checked></td>'+
+       '<td style="text-align:left">'+p.label+({c:' <span class="small">(Cons)</span>',b:' <span class="small">(Base)</span>',o:' <span class="small">(Opt)</span>'}[p.col]||'')+'</td>'+
+       '<td>'+(p.current===undefined||p.current===""?"—":fmtProp(p.kind,p.current))+'</td>'+
+       '<td><b>'+fmtProp(p.kind,p.proposed)+'</b></td>'+
+       '<td style="text-align:left"><span class="small">“'+p.snippet+'”</span></td></tr>';
+  });
+  h+='</tbody></table></div><div style="margin-top:10px"><button class="xbtn" id="btnApplyReview">Apply selected</button> <span class="small">Review the matched text — the scanner is best-effort.</span></div>';
+  el.innerHTML=h;
+  document.getElementById("btnApplyReview").addEventListener("click",applyReview);
+}
+function applyReview(){
+  var boxes=document.querySelectorAll("#impReview input[type=checkbox]"), n=0;
+  boxes.forEach(function(b){if(b.checked){var p=PROPOSALS[+b.getAttribute("data-i")];
+    var f=M[p.key];if(!f)return;f[p.col]=p.proposed;SRC[p.key]=true;n++;}});
+  buildInputs(); buildUtilInputs(); renderAll();
+  document.getElementById("impReview").innerHTML='<p class="small" style="color:var(--good);font-weight:600">Applied '+n+' input'+(n===1?"":"s")+' — the model recomputed. Review the modules &amp; dashboard above.</p>';
+}
+function impFlash(t,warn){var e=document.getElementById("impMsg");e.style.color=warn?"var(--warn)":"var(--good)";e.textContent=t;}
+function ensurePdfJs(cb){
+  if(window.pdfjsLib){cb(true);return;}
+  var s=document.createElement("script");
+  s.src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js";
+  s.onload=function(){try{window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";cb(true);}catch(e){cb(false);}};
+  s.onerror=function(){cb(false);};
+  document.head.appendChild(s);
+}
+function readPdf(file){
+  impFlash("Loading PDF reader…");
+  ensurePdfJs(function(ok){
+    if(!ok){impFlash("Couldn’t load the PDF reader (offline?). Open the PDF, select-all, copy, and paste the text instead.",true);return;}
+    var fr=new FileReader();
+    fr.onload=function(){
+      window.pdfjsLib.getDocument({data:new Uint8Array(fr.result)}).promise.then(function(pdf){
+        var texts=new Array(pdf.numPages), got=0;
+        for(var i=1;i<=pdf.numPages;i++){(function(i){pdf.getPage(i).then(function(pg){return pg.getTextContent();}).then(function(tc){texts[i-1]=tc.items.map(function(it){return it.str;}).join(" ");if(++got===pdf.numPages){var t=texts.join("\n");document.getElementById("impPaste").value=t.slice(0,20000);impFlash("Extracted "+pdf.numPages+" page(s) — scanning…");scanText(t);}});})(i);}
+      }).catch(function(){impFlash("Couldn’t read that PDF. Paste the text instead.",true);});
+    };
+    fr.readAsArrayBuffer(file);
+  });
+}
+/* -------------------- XLSX (.xlsx/.xlsm) — read locally, no external library --------------------
+   xlsx is a ZIP of XML. We unzip with the browser's built-in DecompressionStream (deflate-raw) and
+   read the cells with DOMParser, then flatten to text for the same scanText review flow. Assumptions
+   registers (a header row with "Assumption" … "Base" columns) are emitted as "Label (unit): baseValue"
+   so the matchers grab the Base column, not the Low value. Works offline / on file://. */
+function inflateRaw(bytes){
+  var ds=new DecompressionStream("deflate-raw"), w=ds.writable.getWriter();
+  w.write(bytes); w.close();
+  var reader=ds.readable.getReader(), chunks=[], total=0;
+  return (function pump(){
+    return reader.read().then(function(r){
+      if(r.done){ var out=new Uint8Array(total),o=0; chunks.forEach(function(c){out.set(c,o);o+=c.length;}); return out; }
+      chunks.push(r.value); total+=r.value.length; return pump();
+    });
+  })();
+}
+async function unzipXlsx(ab, onProg){
+  var bytes=new Uint8Array(ab), dv=new DataView(ab), td=new TextDecoder();
+  var i=bytes.length-22;                                   // find End-Of-Central-Directory record
+  while(i>=0 && dv.getUint32(i,true)!==0x06054b50) i--;
+  if(i<0) throw new Error("not a valid .xlsx");
+  var cdCount=dv.getUint16(i+10,true), p=dv.getUint32(i+16,true);
+  var need=/^(xl\/worksheets\/sheet\d+\.xml|xl\/sharedStrings\.xml|xl\/workbook\.xml|xl\/_rels\/workbook\.xml\.rels)$/;
+  var entries=[], out={};
+  for(var n=0;n<cdCount;n++){
+    if(dv.getUint32(p,true)!==0x02014b50) break;
+    var method=dv.getUint16(p+10,true), compSize=dv.getUint32(p+20,true);
+    var nameLen=dv.getUint16(p+28,true), extraLen=dv.getUint16(p+30,true), commentLen=dv.getUint16(p+32,true);
+    var lho=dv.getUint32(p+42,true), fname=td.decode(bytes.subarray(p+46,p+46+nameLen));
+    if(need.test(fname)){
+      var lNameLen=dv.getUint16(lho+26,true), lExtraLen=dv.getUint16(lho+28,true);
+      var start=lho+30+lNameLen+lExtraLen;
+      entries.push({fname:fname, method:method, comp:bytes.subarray(start,start+compSize)});
+    }
+    p+=46+nameLen+extraLen+commentLen;
+  }
+  for(var k=0;k<entries.length;k++){                        // inflate sequentially so progress can advance
+    var e=entries[k];
+    out[e.fname]= e.method===0 ? td.decode(e.comp) : td.decode(await inflateRaw(e.comp));
+    if(onProg) onProg((k+1)/entries.length);
+  }
+  return out;
+}
+async function xlsxSheets(map, onProg){
+  var dp=new DOMParser(), relNS="http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  function doc(x){ return dp.parseFromString(x,"application/xml"); }
+  var ss=[];
+  if(map["xl/sharedStrings.xml"]){
+    var sis=doc(map["xl/sharedStrings.xml"]).getElementsByTagName("si");
+    for(var a=0;a<sis.length;a++){ var ts=sis[a].getElementsByTagName("t"),s=""; for(var b=0;b<ts.length;b++)s+=ts[b].textContent; ss.push(s); }
+  }
+  var rels={};
+  if(map["xl/_rels/workbook.xml.rels"]){
+    var rr=doc(map["xl/_rels/workbook.xml.rels"]).getElementsByTagName("Relationship");
+    for(var c=0;c<rr.length;c++) rels[rr[c].getAttribute("Id")]=rr[c].getAttribute("Target");
+  }
+  var wb=doc(map["xl/workbook.xml"]).getElementsByTagName("sheet"), sheets=[];
+  for(var i=0;i<wb.length;i++){
+    var nm=wb[i].getAttribute("name");
+    var rid=wb[i].getAttribute("r:id")||wb[i].getAttributeNS(relNS,"id");
+    var tgt=rels[rid]; if(!tgt) continue;
+    var path=tgt.charAt(0)==="/"?tgt.substring(1):("xl/"+tgt.replace(/^\.\//,""));
+    if(!map[path]) continue;
+    var d=doc(map[path]), rEls=d.getElementsByTagName("row"), rows=[];
+    for(var r=0;r<rEls.length;r++){
+      var cEls=rEls[r].getElementsByTagName("c"), cells={};
+      for(var k=0;k<cEls.length;k++){
+        var cc=cEls[k], ref=cc.getAttribute("r")||"", t=cc.getAttribute("t");
+        var colL=ref.replace(/[0-9]/g,"")||"A", val=null, v;
+        if(t==="s"){ v=cc.getElementsByTagName("v")[0]; if(v){ var ix=parseInt(v.textContent,10); val=(ss[ix]!==undefined?ss[ix]:""); } }
+        else if(t==="inlineStr"){ var tt=cc.getElementsByTagName("t"),s2=""; for(var m=0;m<tt.length;m++)s2+=tt[m].textContent; val=s2; }
+        else { v=cc.getElementsByTagName("v")[0]; if(v) val=v.textContent; }
+        if(val!==null && val!=="") cells[colL]=val;
+      }
+      rows.push(cells);
+    }
+    sheets.push({name:nm, rows:rows});
+    if(onProg) onProg((i+1)/wb.length);
+    await new Promise(function(r){setTimeout(r,0);});       // yield so the progress bar repaints between sheets
+  }
+  return sheets;
+}
+function xlsxToText(sheets){
+  // detect assumptions-register sheets (a header row with "Assumption" … "Base" columns)
+  var regs=sheets.map(function(sh){
+    var rows=sh.rows;
+    for(var r=0;r<Math.min(rows.length,12);r++){
+      var m={}; for(var col in rows[r]) m[(""+rows[r][col]).trim().toLowerCase()]=col;
+      if(("assumption" in m) && ("base" in m)) return {hdr:r, C:{label:m["assumption"],base:m["base"],unit:m["unit"]}};
+    }
+    return null;
+  });
+  var anyReg=regs.some(Boolean);   // when a register exists it's authoritative — skip narrative/other sheets to avoid prose false-positives
+  var lines=[];
+  sheets.forEach(function(sh,i){
+    var reg=regs[i];
+    if(reg){                                                           // register: emit "Label (unit): Base"  → matcher grabs Base, not Low
+      lines.push("### "+sh.name);
+      for(var r=reg.hdr+1;r<sh.rows.length;r++){
+        var row=sh.rows[r], label=row[reg.C.label]; if(!label) continue;
+        var base=reg.C.base?row[reg.C.base]:undefined; if(base===undefined||base==="") continue;
+        var unit=reg.C.unit?row[reg.C.unit]:"";
+        lines.push(label+(unit&&unit!=="—"&&unit!=="#"?(" ("+unit+")"):"")+": "+base);
+      }
+    } else if(!anyReg){                                                // no register anywhere → best-effort flatten (P&L-style workbooks)
+      lines.push("### "+sh.name);
+      sh.rows.forEach(function(row){
+        var cols=Object.keys(row).sort(function(a,b){return a.length-b.length||(a<b?-1:1);});
+        if(cols.length) lines.push(cols.map(function(c){return row[c];}).join(" "));
+      });
+    }
+  });
+  return lines.join("\n");
+}
+// progress bar for long imports (shown in the drop panel). Stages yield to the browser so the bar paints.
+function impProg(pct,msg){var w=document.getElementById("impProgress");if(!w)return;w.style.display="block";
+  var v=Math.max(0,Math.min(100,pct)), f=document.getElementById("impPfill"), l=document.getElementById("impPlbl");
+  if(f)f.style.width=v+"%"; if(l)l.textContent=Math.round(v)+"%"+(msg?" · "+msg:"");}
+function impProgHide(){var w=document.getElementById("impProgress");if(w)w.style.display="none";}
+function readFileAB(file){return new Promise(function(res,rej){var fr=new FileReader();fr.onload=function(){res(fr.result);};fr.onerror=function(){rej(new Error("file read failed"));};fr.readAsArrayBuffer(file);});}
+function tick(){return new Promise(function(r){ (window.requestAnimationFrame||setTimeout)(function(){setTimeout(r,0);}); });}  // let the bar repaint
+function readXlsx(file){
+  impProg(4,"Reading file…"); impFlash("Reading spreadsheet…");
+  (async function(){
+    try{
+      var ab=await readFileAB(file);                        impProg(12,"Unzipping…");        await tick();
+      var map=await unzipXlsx(ab,function(p){ impProg(12+p*33,"Unzipping…"); });
+      impProg(48,"Reading sheets…");                        await tick();
+      var sheets=await xlsxSheets(map,function(p){ impProg(48+p*34,"Reading sheets…"); });
+      impProg(84,"Extracting values…");                     await tick();
+      var text=xlsxToText(sheets);
+      document.getElementById("impPaste").value=text.slice(0,20000);
+      impProg(92,"Matching to inputs…");                    await tick();
+      scanText(text);
+      impProg(100,"Done — review below.");
+      impFlash("Read "+sheets.length+" sheet(s) — review the matches below.");
+      setTimeout(impProgHide,1500);
+    }catch(e){
+      impProgHide();
+      impFlash("Couldn’t read that .xlsx ("+((e&&e.message)||e)+"). In Excel: File → Save As → CSV, and drop that instead.",true);
+    }
+  })();
+}
+function importFromFile(file){
+  var name=(file.name||"").toLowerCase();
+  var fr=new FileReader();
+  if(name.slice(-4)===".pdf"){readPdf(file);return;}
+  if(name.slice(-5)===".xlsx"||name.slice(-5)===".xlsm"){readXlsx(file);return;}
+  fr.onload=function(){
+    var txt=fr.result;
+    if(name.slice(-5)===".json"){
+      try{var o=JSON.parse(txt);var n=applyInputsObj(o);buildInputs();buildUtilInputs();renderAll();impFlash("Loaded "+n+" input(s) from JSON.");document.getElementById("impReview").innerHTML="";}
+      catch(e){impFlash("That .json didn’t parse. Is it a file exported by this tool?",true);}
+    } else { impFlash("Scanned text for labeled inputs — review below."); document.getElementById("impPaste").value=String(txt).slice(0,20000); scanText(String(txt)); }
+  };
+  fr.readAsText(file);
+}
+
+/* -------------------- RENDER ALL -------------------- */
+function syncSessions(){   // conservative = base − 1, optimistic = base + 1 (blank stays blank)
+  var b=M.sessPort.b;
+  M.sessPort.c = b>0 ? Math.max(0, b-1) : 0;
+  M.sessPort.o = b>0 ? b+1 : 0;
+}
+// live echo under "All-in CAPEX per post" so the × number-of-posts math is visible in place
+function renderCapexEcho(){
+  var el=document.querySelector('input[data-k="allInPerPost"]'); if(!el) return;
+  var field=el.closest(".field"); if(!field) return;
+  var echo=field.querySelector(".perpost-echo");
+  if(!echo){ echo=document.createElement("div"); echo.className="perpost-echo small";
+    echo.style.marginTop="5px"; echo.style.color="var(--navy2)"; field.appendChild(echo); }
+  var ports=g("ports",SC), per=g("allInPerPost",SC);
+  if(per>0 && ports>0) echo.innerHTML='× <b>'+fNum(ports)+'</b> posts = <b>'+fUSD(per*ports)+'</b> hardware CAPEX (ex-land)';
+  else if(ports>0)     echo.innerHTML='× <b>'+fNum(ports)+'</b> posts (set in Site configuration, top of tab)';
+  else                 echo.innerHTML='Set <b>Number of posts</b> in Site configuration (top of tab) to total this.';
+}
+function renderAll(){
+  syncSessions();
+  renderHero(); renderCompare(); renderSensitivity(); renderScaleStress(); renderTerminal(); renderBatteryCompare(); renderExport();
+  renderUtilResults();
+  syncInputs();
+  refreshFieldStates();
+  renderCapexEcho();
+}
+
+document.getElementById("tabnav").addEventListener("click",function(e){
+  var b=e.target.closest("button"); if(!b) return;
+  var t=b.getAttribute("data-tab");
+  this.querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});
+  document.querySelectorAll(".tabpanel").forEach(function(p){p.classList.toggle("on",p.getAttribute("data-tab")===t);});
+});
+
+document.getElementById("scenSeg").addEventListener("click",function(e){
+  var b=e.target.closest("button"); if(!b)return;
+  SC=b.getAttribute("data-sc");
+  this.querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});
+  buildUtilInputs(); renderAll();   // rebuild util inputs so scenario-bound cells (sessions/day) show this scenario
+});
+
+document.getElementById("btnCopyPnl").addEventListener("click",function(){copyText(toTSV(pnlMatrix(SC))).then(function(ok){flashMsg(ok?"Mini P&L copied — paste into a cell":"Copy blocked — select the preview & press ⌘C/Ctrl+C");});});
+document.getElementById("btnXlsxPnl").addEventListener("click",downloadPnlXlsx);
+document.getElementById("btnDlPnl").addEventListener("click",function(){downloadFile(toCSV(pnlMatrix(SC)),"MiniPnL_"+SCEN[SC]+".csv");flashMsg("Downloaded MiniPnL_"+SCEN[SC]+".csv");});
+document.getElementById("btnCopyKpi").addEventListener("click",function(){copyText(toTSV(kpiMatrix())).then(function(ok){flashMsg(ok?"KPIs copied — paste into a cell":"Copy blocked — use Download instead");});});
+document.getElementById("btnDlKpi").addEventListener("click",function(){downloadFile(toCSV(kpiMatrix()),"KPIs_3scenarios.csv");flashMsg("Downloaded KPIs_3scenarios.csv");});
+
+document.getElementById("btnExportInputs").addEventListener("click",function(){downloadFile(inputsToJSON(),"ROI_inputs.json");impFlash("Exported inputs → ROI_inputs.json");});
+document.getElementById("btnClearInputs").addEventListener("click",function(){clearInputs();impFlash("Inputs cleared — blank template.");});
+document.getElementById("impFile").addEventListener("change",function(e){var f=e.target.files&&e.target.files[0];if(f){importFromFile(f);this.value="";}});
+(function(){
+  var dz=document.getElementById("dropZone"), fi=document.getElementById("impFile");
+  dz.addEventListener("click",function(e){ if(e.target!==fi) fi.click(); });
+  ["dragenter","dragover"].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();dz.classList.add("drag");});});
+  ["dragleave","dragend"].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();dz.classList.remove("drag");});});
+  dz.addEventListener("drop",function(e){e.preventDefault();e.stopPropagation();dz.classList.remove("drag");
+    var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) importFromFile(f);});
+})();
+document.getElementById("btnScan").addEventListener("click",function(){var t=document.getElementById("impPaste").value||"";if(t.trim().length<3){impFlash("Paste some document text first.",true);return;}impFlash("Scanned — review below.");scanText(t);});
+
+// Export the Analysis tab to PDF via the browser's native print-to-PDF (vector, selectable, no library).
+// One labeled group of the three scenario heroes (PDF only)
+function heroGroupHTML(title, sub){
+  return '<div style="margin:0 0 6px"><div style="font-size:15px;font-weight:700;color:var(--navy);border-left:4px solid var(--navy2);padding-left:9px">'+title+'</div>'+
+    (sub?'<div class="small" style="margin:3px 0 8px 13px">'+sub+'</div>':'')+'</div>'+
+    ["c","b","o"].map(heroBlockHTML).join("");
+}
+// Build the PDF headline. If a battery is modeled AND a no-battery tariff is entered, show TWO labeled groups —
+// returns WITH the battery (as configured) and a WITHOUT-battery counterfactual (battery CAPEX removed, billed on the
+// full pre-battery peak, no-battery tariff). Otherwise a single group, unchanged. This is PDF-only — the live app is untouched.
+function buildPrintHeroes(){
+  var hasBattery=(M.batteryCapex.v>0) || (M.preBatteryDemand.v>M.billedDemand.v && M.billedDemand.v>0);
+  var nbSet=(g("nbCustomer",SC)+g("nbEnergyOn",SC)+g("nbEnergyOff",SC)+g("nbDemand",SC))>0;
+  if(!(hasBattery && nbSet)) return {html:["c","b","o"].map(heroBlockHTML).join(""), dual:false};
+  var withHTML=heroGroupHTML("Returns WITH on-site battery", "As configured — battery CAPEX included, demand curtailed to the expected billed peak, Module 5 tariff.");
+  var snap={batteryCapex:M.batteryCapex.v, billedDemand:M.billedDemand.v, tCustomer:M.tCustomer.v, tEnergyOn:M.tEnergyOn.v, tEnergyOff:M.tEnergyOff.v, tDemand:M.tDemand.v};
+  M.batteryCapex.v=0; M.billedDemand.v=M.preBatteryDemand.v;                                   // no curtailment
+  M.tCustomer.v=M.nbCustomer.v; M.tEnergyOn.v=M.nbEnergyOn.v; M.tEnergyOff.v=M.nbEnergyOff.v; M.tDemand.v=M.nbDemand.v;
+  var withoutHTML=heroGroupHTML("Returns WITHOUT battery — counterfactual", "No battery CAPEX, billed on the full pre-battery peak, no-battery tariff (e.g. PSE Schedule 26).");
+  M.batteryCapex.v=snap.batteryCapex; M.billedDemand.v=snap.billedDemand;                       // restore — app state unchanged
+  M.tCustomer.v=snap.tCustomer; M.tEnergyOn.v=snap.tEnergyOn; M.tEnergyOff.v=snap.tEnergyOff; M.tDemand.v=snap.tDemand;
+  return {html:withHTML+'<div style="height:12px"></div>'+withoutHTML, dual:true};
+}
+function downloadAnalysisPdf(){
+  var navBtn=document.querySelector('#tabnav button[data-tab="analysis"]');   // match on-screen state to the print
+  if(navBtn && !navBtn.classList.contains("on")) navBtn.click();
+  // headline: three scenario heroes — split into with/without-battery groups when a battery is modeled
+  var heroes=buildPrintHeroes();
+  document.getElementById("heroPrintAll").innerHTML = heroes.html;
+  var siteEl=document.getElementById("printHeadSite");
+  if(siteEl){ var sp=[]; if(SITE.name)sp.push(SITE.name); if(SITE.address)sp.push(SITE.address);
+    siteEl.textContent=sp.join(" · "); siteEl.style.display=sp.length?"block":"none"; }
+  var sub=document.getElementById("printHeadSub");
+  if(sub){ var dstr=new Date().toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
+    sub.textContent="Conservative / Base / Optimistic · "+Math.round(g("horizon",SC))+"-yr hold · discount "+fPct(g("discount",SC),0)+(heroes.dual?" · headline shown WITH vs WITHOUT the on-site battery":"")+" · detailed sensitivity/stress/terminal analysis below shown for the "+SCEN[SC]+" scenario (with battery, as configured) · generated "+dstr+" · illustrative planning estimates"; }
+  document.body.classList.add("print-analysis");
+  var cleanup=function(){ document.body.classList.remove("print-analysis"); document.getElementById("heroPrintAll").innerHTML=""; window.removeEventListener("afterprint",cleanup); };
+  window.addEventListener("afterprint",cleanup);
+  setTimeout(function(){ window.print(); }, 60);   // let the tab switch + heroes + header paint before opening the dialog
+}
+document.getElementById("btnPdfAnalysis").addEventListener("click",downloadAnalysisPdf);
+
+document.getElementById("foot").innerHTML=
+  'A general buy-and-operate return engine for a DC-fast-charging site, computed across Conservative / Base / Optimistic and years 0…N: energy throughput with an explicit ramp, TOU-split revenue, a MIN(energy / demand / energy+demand) utility-tariff selection, a network-services fee with floor &amp; escalator, itemized opex, 100% bonus depreciation with NOL carryforward, levered debt service, and a terminal residual. Drive it from your own site by editing the Module 0–9 inputs and the Module 5 tariff constants; every scenario recomputes live. '+
+  'It opens blank — enter your own site, or drop a document / tariff schedule to auto-fill it. '+
+  'Illustrative planning estimates — not a tariff determination, appraisal, or tax/investment advice. Verify incentive &amp; tax items with counsel; re-derive against your utility’s service quote, metered interval data, and firm CAPEX bids.';
+
+/* init */
+buildInputs();
+buildUtilInputs();
+renderUtilResults();
+renderAll();
+wireSiteInputs();
+renderSiteId();
+</script>
+</body>
+</html>
